@@ -48,16 +48,112 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
-void
+        void returnFromSystemCall() {
+
+                int pc, npc;
+
+                pc = machine->ReadRegister( PCReg );
+                npc = machine->ReadRegister( NextPCReg );
+                machine->WriteRegister( PrevPCReg, pc );        // PrevPC <- PC
+                machine->WriteRegister( PCReg, npc );           // PC <- NextPC
+                machine->WriteRegister( NextPCReg, npc + 4 );   // NextPC <- NextPC + 4
+
+        }       // returnFromSystemCall
+
+
+void Nachos_Halt() {                    // System call 0
+
+        DEBUG('a', "Shutdown, initiated by user program.\n");
+        interrupt->Halt();
+
+}       // Nachos_Halt
+
+void Nachos_Open() {                    // System call 5
+/* System call definition described to user
+	int Open(
+		char *name	// Register 4
+	);
+*/
+	// Read the name from the user memory, see 5 below
+	// Use NachosOpenFilesTable class to create a relationship
+	// between user file and unix file
+	// Verify for errors
+
+        returnFromSystemCall();		// Update the PC registers
+
+}       // Nachos_Open
+
+void Nachos_Write() {                   // System call 7
+
+/* System call definition described to user
+        void Write(
+		char *buffer,	// Register 4
+		int size,	// Register 5
+		 OpenFileId id	// Register 6
+	);
+*/
+
+        char * buffer = NULL;
+        int size = machine->ReadRegister( 5 );	// Read size to write
+
+        // buffer = Read data from address given by user;
+        OpenFileId id = machine->ReadRegister( 6 );	// Read file descriptor
+
+	// Need a semaphore to synchronize access to console
+	// Console->P();
+	switch (id) {
+		case  ConsoleInput:	// User could not write to standard input
+			machine->WriteRegister( 2, -1 );
+			break;
+		case  ConsoleOutput:
+			buffer[ size ] = 0;
+			printf( "%s", buffer );
+		break;
+		case ConsoleError:	// This trick permits to write integers to console
+			printf( "%d\n", machine->ReadRegister( 4 ) );
+			break;
+		default:	// All other opened files
+			// Verify if the file is opened, if not return -1 in r2
+			// Get the unix handle from our table for open files
+			// Do the write to the already opened Unix file
+			// Return the number of chars written to user, via r2
+			break;
+
+	}
+	// Update simulation stats, see details in Statistics class in machine/stats.cc
+	// Console->V();
+
+        returnFromSystemCall();		// Update the PC registers
+
+}       // Nachos_Write
+
+...
+
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(false);
+    switch ( which ) {
+
+       case SyscallException:
+          switch ( type ) {
+             case SC_Halt:
+                Nachos_Halt();             // System call # 0
+                break;
+             case SC_Open:
+                Nachos_Open();             // System call # 5
+                break;
+             case SC_Write:
+                Nachos_Write();             // System call # 7
+                break;
+             default:
+                printf("Unexpected syscall exception %d\n", type );
+                ASSERT(false);
+                break;
+          }
+       break;
+       default:
+          printf( "Unexpected exception %d\n", which );
+          ASSERT(FALSE);
+          break;
     }
-}
