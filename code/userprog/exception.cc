@@ -127,9 +127,7 @@ void Nachos_Write() {                   // System call 7
 
 }       // Nachos_Write
 
-...
-
-ExceptionHandler(ExceptionType which)
+void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
@@ -154,6 +152,7 @@ ExceptionHandler(ExceptionType which)
        break;
        default:
           printf( "Unexpected exception %d\n", which );
-          ASSERT(FALSE);
+          ASSERT(false);
           break;
     }
+}
