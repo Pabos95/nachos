@@ -1,3 +1,5 @@
+#ifndef NACHOSTABLA_H
+#define NACHOSTABLA_H
  class NachosOpenFilesTable {
   public:
     NachosOpenFilesTable();       // Initialize 
@@ -18,3 +20,4 @@
     int usage;			// How many threads are using this table
 
 };
+#endif 
