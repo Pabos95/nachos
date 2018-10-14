@@ -1,5 +1,6 @@
 #ifndef NACHOSTABLA_H
 #define NACHOSTABLA_H
+#include "bitmap.h"
  class NachosOpenFilesTable {
   public:
     NachosOpenFilesTable();       // Initialize 

@@ -43,6 +43,7 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
+#include "nachostabla.h"
 #endif
 
 // CPU register state to be saved on context switch.  
@@ -78,6 +79,7 @@ class Thread {
     HostMemoryAddress machineState[MachineStateSize];	// all registers except for stackTop
 
   public:
+    NachosOpenFilesTable * tablaArchivos; //tabla de archivos abiertos para este hilo
     Thread(const char* debugName);	// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted

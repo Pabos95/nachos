@@ -38,6 +38,7 @@ Thread::Thread(const char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    tablaArchivos = new NachosOpenFilesTable();
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -58,7 +59,7 @@ Thread::Thread(const char* threadName)
 Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
-
+    delete tablaArchivos;
     ASSERT(this != currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(HostMemoryAddress));

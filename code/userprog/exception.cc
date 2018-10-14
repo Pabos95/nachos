@@ -67,7 +67,11 @@ void Nachos_Halt() {                    // System call 0
         interrupt->Halt();
 
 }       // Nachos_Halt
-
+void Nachos_Exit() { //System call 1
+    int status = machine->ReadRegister(4);
+    currentThread->tablaArchivos->deleteThread();
+    currentThread->Finish();
+}
 void Nachos_Open() {                    // System call 5
 /* System call definition described to user
 	int Open(
@@ -78,7 +82,6 @@ void Nachos_Open() {                    // System call 5
 	// Use NachosOpenFilesTable class to create a relationship
 	// between user file and unix file
 	// Verify for errors
-
         returnFromSystemCall();		// Update the PC registers
 
 }       // Nachos_Open
@@ -94,13 +97,14 @@ void Nachos_Write() {                   // System call 7
 */
 
         char * buffer = NULL;
+        int virtualAdress = machine->ReadRegister(4); //direccion virtual del buffer 
         int size = machine->ReadRegister( 5 );	// Read size to write
 
         // buffer = Read data from address given by user;
         OpenFileId id = machine->ReadRegister( 6 );	// Read file descriptor
 
 	// Need a semaphore to synchronize access to console
-	// Console->P();
+    //Console->P();
 	switch (id) {
 		case  ConsoleInput:	// User could not write to standard input
 			machine->WriteRegister( 2, -1 );
@@ -138,6 +142,9 @@ void ExceptionHandler(ExceptionType which)
              case SC_Halt:
                 Nachos_Halt();             // System call # 0
                 break;
+             case SC_Exit:
+                 Nachos_Exit();
+                 break;
              case SC_Open:
                 Nachos_Open();             // System call # 5
                 break;

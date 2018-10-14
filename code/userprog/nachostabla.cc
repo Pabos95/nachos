@@ -1,8 +1,8 @@
-#include nachostabla.h
+#include "nachostabla.h"
 using namespace std;
 NachosOpenFilesTable::NachosOpenFilesTable(){ //el constructor inicializa un bitMap con n items bits
     usage = 0;
-    openFilesMap = new Bitmap(256);
+    openFilesMap = new BitMap(256);
     openFiles = new int[256];
 }
 NachosOpenFilesTable::~NachosOpenFilesTable(){
@@ -17,14 +17,14 @@ int NachosOpenFilesTable::Open(int UnixHandle){
     return resultado;
 }
 int NachosOpenFilesTable::Close(int NachosHandle){
-    if(openFilesMap->Test(NachosHandle){
+    if(openFilesMap->Test(NachosHandle)){
         openFilesMap->Clear(NachosHandle);
         openFiles[NachosHandle] = 0;
         return 1;
     }
     return -1;
 }
-bool isOpened(int NachosHandle){
+bool NachosOpenFilesTable::isOpened(int NachosHandle){
     return openFilesMap->Test(NachosHandle);
 }
 void NachosOpenFilesTable::addThread(){ //si hay un nuevo hilo se aumenta la variable de uso de la  tabla
