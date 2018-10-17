@@ -69,7 +69,7 @@ void Nachos_Halt() {                    // System call 0
 }       // Nachos_Halt
 void Nachos_Exit() { //System call 1
     int status = machine->ReadRegister(4);
-    currentThread->tablaArchivos->deleteThread();
+    currentThread->tablaArchivos->delThread();
     currentThread->Finish();
 }
 void Nachos_Open() {                    // System call 5

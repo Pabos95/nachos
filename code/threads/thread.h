@@ -39,7 +39,6 @@
 
 #include "copyright.h"
 #include "utility.h"
-
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
@@ -79,7 +78,7 @@ class Thread {
     HostMemoryAddress machineState[MachineStateSize];	// all registers except for stackTop
 
   public:
-    NachosOpenFilesTable * tablaArchivos; //tabla de archivos abiertos para este hilo
+    NachosOpenFilesTable* tablaArchivos; //tabla de archivos abiertos para este hilo
     Thread(const char* debugName);	// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted

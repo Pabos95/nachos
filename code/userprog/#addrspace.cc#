@@ -73,7 +73,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
 			+ UserStackSize;	// we need to increase the size
 						// to leave room for the stack
-	std::cout<<"El tamaño del ejecutable es "<<size<<std::endl;
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
