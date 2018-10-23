@@ -161,15 +161,46 @@ void ExceptionHandler(ExceptionType which)
              case SC_Halt:
                 Nachos_Halt();             // System call # 0
                 break;
-             case SC_Exit:
+             case SC_Exit:   
+             // System call # 1
                  Nachos_Exit();
                  break;
-             case SC_Open:
+             case SC_Exec:  
+             // System call # 2
+                  break;
+             case SC_Join: 
+             // System call # 3
+                  break;
+             case SC_Create: 
+             // System call # 4
+                  break;        
+             case SC_Open: 
                 Nachos_Open();             // System call # 5
                 break;
+             case SC_Read:
+              //system Call #6
+                  break;
              case SC_Write:
                 Nachos_Write();             // System call # 7
                 break;
+             case SC_Close:
+             //System Call # 8
+                  break;
+             case SC_Fork:
+             //System Call # 9
+             break;
+             case SC_Yield:
+             //System Call #10
+             break;
+             case SC_SemCreate:
+             //System Call #11
+             break;
+             case SC_SemDestroy:
+             //System Call #12
+             break;
+             case SC_SemSignal:
+             //System Call # 13
+             break;
              default:
                 printf("Unexpected syscall exception %d\n", type );
                 ASSERT(false);

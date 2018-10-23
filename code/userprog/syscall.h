@@ -36,7 +36,6 @@
 #define SC_SemDestroy	12
 #define SC_SemSignal	13
 #define SC_SemWait	14
-
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
