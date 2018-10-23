@@ -64,6 +64,12 @@ AddrSpace::AddrSpace(OpenFile *executable)
     unsigned int i, size;
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    printf("Tamaño del segmento de datos inicializados \n" );
+    printf("%d",noffH.initData.size);
+    printf("Tamaño del segmento de datos no inicializados \n" );
+    printf("%d",noffH.uninitData.size);
+    printf("Tamaño del segmento de codigo es \n ");
+    printf("%d",noffH.code.size);
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);

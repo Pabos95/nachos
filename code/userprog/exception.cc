@@ -73,11 +73,12 @@ void Nachos_Exit() { //System call 1
     currentThread->Finish();
 }
 void Nachos_Open() {                    // System call 5
-/* System call definition described to user
+/*System call definition described to user
 	int Open(
 		char *name	// Register 4
 	);
 */   DEBUG ('a', "Inicia Open\n");
+    int idFalse;
     char name[128];
     int dir =  machine->ReadRegister(4); //lee el registro pues en ese es el que está la dirección del archivo a leer
     int caracterActual = 1;
@@ -91,14 +92,14 @@ void Nachos_Open() {                    // System call 5
 	// Use NachosOpenFilesTable class to create a relationship
 	// between user file and unix file
 	// Verify for errors
-    int idArchivo = open(name; 0_RDWR); //La id real  (en Unix)
-    if(id != -1){
+    int idArchivo = Open(name, 0)//0_RDWR); //La id real  (en Unix)
+    if(idArchivo != -1){
         idFalsa = currentThread->tablaArchivos->Open(idArchivo); //La id en Nachos
         machine->ReadRegister(2, idFalsa);
     }
     else{
         printf ("ERROR: Archivo no encontrado.\n");
-		machine->WriteRegister (2, ERROR);
+		machine->WriteRegister (2, -1);
     }
         returnFromSystemCall();		// Update the PC registers
 DEBUG ('a', "Termina Open.\n");
