@@ -161,7 +161,9 @@ void Nachos_Write() {                   // System call 7
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-
+    printf("exception type %d\n", SyscallException );
+    printf("which  %d\n", which );
+    printf("type %d\n ", type );
     switch ( which ) {
        case SyscallException:
           switch (type) {		  
