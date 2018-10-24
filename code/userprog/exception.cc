@@ -108,18 +108,16 @@ DEBUG ('a', "Termina Open.\n");
 }       // Nachos_Open
 
 void Nachos_Write() {                   // System call 7
-
-/* System call definition described to user
         void Write(
 		char *buffer,	// Register 4
 		int size,	// Register 5
 		 OpenFileId id	// Register 6
 	);
-*/
+
 
         char * buffer = NULL;
         int virtualAdress = machine->ReadRegister(4); //direccion virtual del buffer 
-        int size = machine->ReadRegister( 5 );	// Read size to write
+        size_t size = machine->ReadRegister( 5 );	// Read size to write
 
         // buffer = Read data from address given by user;
         OpenFileId id = machine->ReadRegister( 6 );	// Read file descriptor
@@ -137,7 +135,15 @@ void Nachos_Write() {                   // System call 7
 		case ConsoleError:	// This trick permits to write integers to console
 			printf( "%d\n", machine->ReadRegister( 4 ) );
 			break;
-		default:	// All other opened files
+		default:
+		    if(currentThread->tablaArchivos->isOpened(id) == CODIGOERROR){
+				machine->WriteRegister(2, CODIGOERROR);
+			}
+			else{
+				write(currentThread->tablaArchivos->getUnixHandle(id),buffer,size);
+				machine->WriteRegister(2, size); //retorna el numero de bytes escritos
+			}
+			// All other opened files
 			// Verify if the file is opened, if not return -1 in r2
 			// Get the unix handle from our table for open files
 			// Do the write to the already opened Unix file
@@ -157,9 +163,8 @@ void ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
 
     switch ( which ) {
-
        case SyscallException:
-          switch ( type ) {
+          switch (type) {		  
              case SC_Halt:
                 Nachos_Halt();             // System call # 0
                 break;

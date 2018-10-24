@@ -62,13 +62,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
     NoffHeader noffH;
     unsigned int i, size;
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-    /*
-    printf("Tamaño del segmento de datos inicializados \n" );
-    printf("%d",noffH.initData.size);
-    printf("Tamaño del segmento de datos no inicializados \n" );
-    printf("%d",noffH.uninitData.size);
-    printf("Tamaño del segmento de codigo es \n ");
-    printf("%d",noffH.code.size);*/
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
@@ -109,27 +102,33 @@ AddrSpace::AddrSpace(OpenFile *executable)
     bzero(machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory
-    int numPaginasCodigo = divRoundUp(noffH.code.size, numPages); //divide el tamano del segmento de codigo entre el numero de paginas
+    int numPaginasCodigo = divRoundUp(noffH.code.size, PageSize); //divide el tamano del segmento de codigo entre el numero de paginas
 int dir = noffH.code.inFileAddr;
+    printf("Tamaño del segmento de datos inicializados \n" );
+    printf("%d",noffH.initData.size);
+    printf("Tamaño del segmento de datos no inicializados \n" );
+    printf("%d",noffH.uninitData.size);
+    printf("Tamaño del segmento de codigo es \n ");
+    printf("%d",noffH.code.size);
   if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         for(int i = 0; i < numPaginasCodigo; i++){
         executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage]),
-			noffH.code.size, dir);
+			PageSize, dir);
+		 dir += 128;	
         }
-        dir += 128;
     }
     dir = noffH.initData.inFileAddr;
-     int numPaginasDatos = divRoundUp(noffH.initData.size, numPages); //divide el tamano del segmento de codigo entre el numero de paginas
+     int numPaginasDatos = divRoundUp(noffH.initData.size, PageSize); //divide el tamano del segmento de codigo entre el numero de paginas
     if (noffH.initData.size > 0) {
            DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
         for(int i = 0; i < numPaginasDatos; i++){
         executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage]),
-			noffH.initData.size, noffH.initData.inFileAddr);
+			PageSize, dir);
+			dir += 128;
         }
-        dir += 128;
     } //*/ //esto de leer por páginas aún no funciona
   /*    if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 

@@ -19,6 +19,7 @@
 #include <sys/ipc.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */

@@ -27,6 +27,9 @@ int NachosOpenFilesTable::Close(int NachosHandle){
 bool NachosOpenFilesTable::isOpened(int NachosHandle){
     return openFilesMap->Test(NachosHandle);
 }
+int NachosOpenFilesTable::getUnixHandle( int NachosHandle ){
+return openFiles[NachosHandle];
+}
 void NachosOpenFilesTable::addThread(){ //si hay un nuevo hilo se aumenta la variable de uso de la  tabla
   usage++;
 }
