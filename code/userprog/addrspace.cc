@@ -114,7 +114,7 @@ int dir = noffH.code.inFileAddr;
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         for(int i = 0; i < numPaginasCodigo; i++){
-        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage]),
+        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage*128]),
 			PageSize, dir);
 		 dir += 128;	
         }
@@ -125,7 +125,7 @@ int dir = noffH.code.inFileAddr;
            DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
         for(int i = 0; i < numPaginasDatos; i++){
-        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage]),
+        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage*128]),
 			PageSize, dir);
 			dir += 128;
         }
