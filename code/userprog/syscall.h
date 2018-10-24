@@ -16,6 +16,7 @@
 #include "copyright.h"
 #include "nachostabla.h"
 #include <sys/types.h>
+#include <sys/ipc.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 /* system call codes -- used by the stubs to tell the kernel which system call

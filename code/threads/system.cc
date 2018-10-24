@@ -33,6 +33,7 @@ SynchDisk   *synchDisk;
 #endif
 
 #ifdef USER_PROGRAM	// requires either FILESYS or FILESYS_STUB
+BitMap mapaGlobal = BitMap(PageSize * NumPhysPages); //bitMap global para saber cuales paginas están ocupadas
 Machine *machine;	// user program memory and registers
 #endif
 

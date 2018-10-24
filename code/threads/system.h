@@ -30,7 +30,7 @@ extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 
 #ifdef USER_PROGRAM
-#include "machine.h"
+extern BitMap mapaGlobal;		//Mapa de bits global para saber cuáles páginas están ocupadas en la memoria fisica
 extern Machine* machine;	// user program memory and registers
 #endif
 

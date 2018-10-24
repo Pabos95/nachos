@@ -24,7 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-
+#define CODIGOERROR -1
+#define RSYSTEMCALL 2 
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -83,6 +84,7 @@ void Nachos_Open() {                    // System call 5
     int dir =  machine->ReadRegister(4); //lee el registro pues en ese es el que está la dirección del archivo a leer
     int caracterActual = 1;
     int i = 0;
+    int idFalsa;
     while(caracterActual != 0){
         machine->ReadMem(dir +i,1 ,&caracterActual); //lee un caracter de la memoria
         name[i] = caracterActual;
@@ -92,14 +94,14 @@ void Nachos_Open() {                    // System call 5
 	// Use NachosOpenFilesTable class to create a relationship
 	// between user file and unix file
 	// Verify for errors
-    int idArchivo = Open(name, 0)//0_RDWR); //La id real  (en Unix)
-    if(idArchivo != -1){
+    int idArchivo = open( name, 0);//0_RDWR); //La id real  (en Unix)
+    if(idArchivo != CODIGOERROR){
         idFalsa = currentThread->tablaArchivos->Open(idArchivo); //La id en Nachos
-        machine->ReadRegister(2, idFalsa);
+        machine->WriteRegister(2, idFalsa);
     }
     else{
         printf ("ERROR: Archivo no encontrado.\n");
-		machine->WriteRegister (2, -1);
+		machine->WriteRegister (RSYSTEMCALL, CODIGOERROR);
     }
         returnFromSystemCall();		// Update the PC registers
 DEBUG ('a', "Termina Open.\n");

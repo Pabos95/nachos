@@ -14,7 +14,6 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
-
 #include "copyright.h"
 #include "system.h"
 #include "addrspace.h"
@@ -27,7 +26,7 @@ using namespace std;
 //	object file header, in case the file was generated on a little
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
-
+#define tamPagina 128
 static void 
 SwapHeader (NoffHeader *noffH)
 {
@@ -62,24 +61,26 @@ AddrSpace::AddrSpace(OpenFile *executable)
 {
     NoffHeader noffH;
     unsigned int i, size;
-
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    /*
     printf("Tamaño del segmento de datos inicializados \n" );
     printf("%d",noffH.initData.size);
     printf("Tamaño del segmento de datos no inicializados \n" );
     printf("%d",noffH.uninitData.size);
     printf("Tamaño del segmento de codigo es \n ");
-    printf("%d",noffH.code.size);
+    printf("%d",noffH.code.size);*/
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
-
+  mapaGlobal.Mark(2);
+  mapaGlobal.Mark(4);
+  mapaGlobal.Mark(6);
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
 			+ UserStackSize;	// we need to increase the size
 						// to leave room for the stack
-	std::cout<<"El tamaño del ejecutable es "<<size<<std::endl;
+	/*std::cout<<"El tamaño del ejecutable es "<<size<<std::endl;*/
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
@@ -94,7 +95,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i;
+	pageTable[i].physicalPage = mapaGlobal.Find();
 	pageTable[i].valid = true;
 	pageTable[i].use = false;
 	pageTable[i].dirty = false;
@@ -108,7 +109,29 @@ AddrSpace::AddrSpace(OpenFile *executable)
     bzero(machine->mainMemory, size);
 
 // then, copy in the code and data segments into memory
-    if (noffH.code.size > 0) {
+    int numPaginasCodigo = divRoundUp(noffH.code.size, numPages); //divide el tamano del segmento de codigo entre el numero de paginas
+    int dir = 0;
+  /*if (noffH.code.size > 0) {
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+			noffH.code.virtualAddr, noffH.code.size);
+        for(int i = 0; i < numPaginasCodigo; i++){
+        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+			noffH.code.size, dir);
+        }
+        dir += 128;
+    }
+    dir = 0;
+     int numPaginasDatos = divRoundUp(noffH.initData.size, numPages); //divide el tamano del segmento de codigo entre el numero de paginas
+    if (noffH.initData.size > 0) {
+           DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
+			noffH.initData.virtualAddr, noffH.initData.size);
+        for(int i = 0; i < numPaginasDatos; i++){
+        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
+			noffH.initData.size, noffH.initData.inFileAddr);
+        }
+        dir += 128;
+    } */ //esto de leer por páginas aún no funciona
+      if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
@@ -119,7 +142,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			noffH.initData.virtualAddr, noffH.initData.size);
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
-    }
+}
 
 }
 
