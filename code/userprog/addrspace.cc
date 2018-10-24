@@ -110,28 +110,28 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 // then, copy in the code and data segments into memory
     int numPaginasCodigo = divRoundUp(noffH.code.size, numPages); //divide el tamano del segmento de codigo entre el numero de paginas
-    int dir = 0;
-  /*if (noffH.code.size > 0) {
+int dir = noffH.code.inFileAddr;
+  if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         for(int i = 0; i < numPaginasCodigo; i++){
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
+        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage]),
 			noffH.code.size, dir);
         }
         dir += 128;
     }
-    dir = 0;
+    dir = noffH.initData.inFileAddr;
      int numPaginasDatos = divRoundUp(noffH.initData.size, numPages); //divide el tamano del segmento de codigo entre el numero de paginas
     if (noffH.initData.size > 0) {
            DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
 			noffH.initData.virtualAddr, noffH.initData.size);
         for(int i = 0; i < numPaginasDatos; i++){
-        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
+        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage]),
 			noffH.initData.size, noffH.initData.inFileAddr);
         }
         dir += 128;
-    } */ //esto de leer por páginas aún no funciona
-      if (noffH.code.size > 0) {
+    } //*/ //esto de leer por páginas aún no funciona
+  /*    if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
@@ -142,7 +142,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			noffH.initData.virtualAddr, noffH.initData.size);
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
-}
+} */
 
 }
 
