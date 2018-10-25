@@ -142,8 +142,8 @@ void Nachos_Write() {                   // System call 7
 		case  ConsoleInput:	// User could not write to standard input
 			machine->WriteRegister( 2, -1 );
 			break;
-		case  ConsoleOutput:
-			printf( "%s", buffer );
+		case  ConsoleOutput: //en caso de que lo que se solicite sea imprimir en la terminal
+			printf( "%s", buffer ); 
 		break;
 		case ConsoleError:	// This trick permits to write integers to console
 			printf( "%d\n", machine->ReadRegister( 4 ) );
