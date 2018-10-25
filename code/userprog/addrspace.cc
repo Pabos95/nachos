@@ -142,7 +142,7 @@ int dir = noffH.code.inFileAddr;
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
 } */
-
+    printf("Termina el constructor de Addrspace ");
 }
 
 //----------------------------------------------------------------------

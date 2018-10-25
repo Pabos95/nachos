@@ -141,6 +141,7 @@ void Nachos_Write() {                   // System call 7
 			}
 			else{
 				write(currentThread->tablaArchivos->getUnixHandle(id),buffer,size);
+                printf("Saliendo del write");
 				machine->WriteRegister(2, size); //retorna el numero de bytes escritos
 			}
 			// All other opened files
@@ -164,6 +165,9 @@ void ExceptionHandler(ExceptionType which)
     printf("exception type %d\n", SyscallException );
     printf("which  %d\n", which );
     printf("type %d\n ", type );
+    if((type >= 0) && (type <= 13)){
+	which = SyscallException;
+	}
     switch ( which ) {
        case SyscallException:
           switch (type) {		  
@@ -214,8 +218,7 @@ void ExceptionHandler(ExceptionType which)
                 printf("Unexpected syscall exception %d\n", type );
                 ASSERT(false);
                 break;
-          }
-       break;
+          }break;
        default:
           printf( "Unexpected exception %d\n", which );
           ASSERT(false);
