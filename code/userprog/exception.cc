@@ -24,6 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "synch.h"
+#include "stdio.h"
 #define CODIGOERROR -1
 #define RSYSTEMCALL 2 
 //----------------------------------------------------------------------
@@ -48,7 +50,7 @@
 //	"which" is the kind of exception.  The list of possible exceptions 
 //	are in machine.h.
 //----------------------------------------------------------------------
-
+Semaphore*  Console = new Semaphore("Sem", 1); //inicializa un semaforo
         void returnFromSystemCall() {
 
                 int pc, npc;
@@ -79,7 +81,7 @@ void Nachos_Open() {                    // System call 5
 		char *name	// Register 4
 	);
 */   DEBUG ('a', "Inicia Open\n");
-    int idFalse;
+printf("Entra a open");
     char name[128];
     int dir =  machine->ReadRegister(4); //lee el registro pues en ese es el que está la dirección del archivo a leer
     int caracterActual = 1;
@@ -87,14 +89,14 @@ void Nachos_Open() {                    // System call 5
     int idFalsa;
     while(caracterActual != 0){
         machine->ReadMem(dir +i,1 ,&caracterActual); //lee un caracter de la memoria
-        name[i] = caracterActual;
+        name[i++] = caracterActual;
         i++;
     }
 	// Read the name from the user memory, see 5 below
 	// Use NachosOpenFilesTable class to create a relationship
 	// between user file and unix file
 	// Verify for errors
-    int idArchivo = open( name, 0);//0_RDWR); //La id real  (en Unix)
+    int idArchivo = open( name, O_RDWR);//0_RDWR); //La id real  (en Unix)
     if(idArchivo != CODIGOERROR){
         idFalsa = currentThread->tablaArchivos->Open(idArchivo); //La id en Nachos
         machine->WriteRegister(2, idFalsa);
@@ -108,41 +110,51 @@ DEBUG ('a', "Termina Open.\n");
 }       // Nachos_Open
 
 void Nachos_Write() {                   // System call 7
-        void Write(
-		char *buffer,	// Register 4
-		int size,	// Register 5
-		 OpenFileId id	// Register 6
-	);
-
-
-        char * buffer = NULL;
-        int virtualAdress = machine->ReadRegister(4); //direccion virtual del buffer 
+        DEBUG('a',"Entra a write \n");
+        int adress = machine->ReadRegister(4); //direccion  del buffer 
+          DEBUG('a',"Lee el registro 4 \n");
         size_t size = machine->ReadRegister( 5 );	// Read size to write
-
+         char buffer[size+1];
+        DEBUG('a',"Lee el registro 5 \n");
         // buffer = Read data from address given by user;
         OpenFileId id = machine->ReadRegister( 6 );	// Read file descriptor
-
+        if(id < 0){
+        DEBUG('a', "Error al leer el descriptor");
+        }
+ DEBUG('a',"Lee el registro 6 \n");
+ DEBUG('a',"Id : ");
+ int resultado;
 	// Need a semaphore to synchronize access to console
-    //Console->P();
+    Console->P();
+    buffer[ size ] = 0; //la ultima entrada se marca como 0 para que se indique a donde acaba la lectura de memoria
+    int valorActual = machine->ReadMem(adress,1,&valorActual); //lee el primer caracter a escribir
+    buffer[0] = valorActual;
+    int pos = 1;
+    while(valorActual != 0){
+        machine->ReadMem(adress,1,&valorActual);
+        buffer[pos] = valorActual;
+        adress++;
+        pos++;
+    }
 	switch (id) {
+         //DEBUG('a',"Entra al switch");
+        printf("Entra al switch \n");
 		case  ConsoleInput:	// User could not write to standard input
 			machine->WriteRegister( 2, -1 );
 			break;
 		case  ConsoleOutput:
-			buffer[ size ] = 0;
 			printf( "%s", buffer );
 		break;
 		case ConsoleError:	// This trick permits to write integers to console
 			printf( "%d\n", machine->ReadRegister( 4 ) );
 			break;
 		default:
-		    if(currentThread->tablaArchivos->isOpened(id) == CODIGOERROR){
+		    if(currentThread->tablaArchivos->isOpened(id) == false){
 				machine->WriteRegister(2, CODIGOERROR);
 			}
 			else{
-				write(currentThread->tablaArchivos->getUnixHandle(id),buffer,size);
-                printf("Saliendo del write");
-				machine->WriteRegister(2, size); //retorna el numero de bytes escritos
+				resultado = write(currentThread->tablaArchivos->getUnixHandle(id),buffer,size); //consegue la direccion real (de Unix) del archivo y manda a escribir el buffer
+				machine->WriteRegister(2, resultado); //retorna el numero de bytes escritos
 			}
 			// All other opened files
 			// Verify if the file is opened, if not return -1 in r2
@@ -153,8 +165,8 @@ void Nachos_Write() {                   // System call 7
 
 	}
 	// Update simulation stats, see details in Statistics class in machine/stats.cc
-	// Console->V();
-
+	Console->V();
+ DEBUG('a',"Saliendo del write");
         returnFromSystemCall();		// Update the PC registers
 
 }       // Nachos_Write
@@ -165,9 +177,9 @@ void ExceptionHandler(ExceptionType which)
     printf("exception type %d\n", SyscallException );
     printf("which  %d\n", which );
     printf("type %d\n ", type );
-    if((type >= 0) && (type <= 13)){
+  /*  if((type >= 0) && (type <= 13)){
 	which = SyscallException;
-	}
+	}*/
     switch ( which ) {
        case SyscallException:
           switch (type) {		  

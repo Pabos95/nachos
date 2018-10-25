@@ -1,5 +1,5 @@
 #include "syscall.h"
-
+#include <stdio.h>
 /* Este proceso sirve para probar que el programa cargue correctamente las
 	páginas en el addrspace.
 	Requiere que se encuentre implementado el system call Write() y el system
@@ -26,17 +26,15 @@ jklmnopqrstuvwxy
 */
 
 void main () {
-	printf("Hola");
+	DEBUG('a', "addrspace test");
 	int i = 0, j = 0;
 	char buffer[1024];
 	for (j = 0; j<1024;j++) {
-		printf("Llenado buffer");
+		DEBUG('a',"Llenado buffer");
 		buffer[j]=(char)((j%27)+'a');
 	}
-
-
 	while (i<1) {
-		std::cout<<"Escribiendo "<<i<<std::endl;
+		DEBUG('a',"Escribiendo buffer");
 		Write(buffer,1024,1);
 		i++;
 	}
