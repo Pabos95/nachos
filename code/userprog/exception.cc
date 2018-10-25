@@ -76,6 +76,19 @@ void Nachos_Exit() { //System call 1
     currentThread->Finish();
 }
 void Nachos_Join(){ //System call 3
+    int spaceId = readRegister(4); //lee la id del proceso desde el registro 4
+   t = currentThread->getChild(spaceId);
+  if (t == NULL) //si no encuentra al hijo con id SpaceId
+    {
+	// If NULL then spaceId was not found
+        // among currentThread's children.
+        machine->writerRegister(2, CODIGOERROR); //como no existe el retorna un error al registro 2
+       returnFromSystemCall();
+    }
+    console->P();
+    Thread *t;
+    console->V();
+    returnFromSystemCall();
 }
 void Nachos_Open() {                    // System call 5
 /*System call definition described to user
