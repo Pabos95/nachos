@@ -75,6 +75,8 @@ void Nachos_Exit() { //System call 1
     currentThread->tablaArchivos->delThread();
     currentThread->Finish();
 }
+void Nachos_Join(){ //System call 3
+}
 void Nachos_Open() {                    // System call 5
 /*System call definition described to user
 	int Open(
@@ -133,8 +135,8 @@ void Nachos_Write() {                   // System call 7
     while(valorActual != 0){
         machine->ReadMem(adress,1,&valorActual);
         buffer[pos] = valorActual;
-        adress++;
-        pos++;
+        adress++; //se aumenta la direccion de memoria para leer el siguiente valor
+        pos++; //se aumenta la posicion del buffer
     }
 	switch (id) {
          //DEBUG('a',"Entra al switch");
@@ -149,7 +151,7 @@ void Nachos_Write() {                   // System call 7
 			printf( "%d\n", machine->ReadRegister( 4 ) );
 			break;
 		default:
-		    if(currentThread->tablaArchivos->isOpened(id) == false){
+		    if(currentThread->tablaArchivos->isOpened(id) == CODIGOERROR){
 				machine->WriteRegister(2, CODIGOERROR);
 			}
 			else{
@@ -174,7 +176,7 @@ void Nachos_Write() {                   // System call 7
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-    printf("exception type %d\n", SyscallException );
+    printf("\n exception type %d\n", SyscallException );
     printf("which  %d\n", which );
     printf("type %d\n ", type );
   /*  if((type >= 0) && (type <= 13)){
