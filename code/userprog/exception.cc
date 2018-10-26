@@ -140,11 +140,11 @@ void Nachos_Write() {                   // System call 7
  int resultado;
 	// Need a semaphore to synchronize access to console
     Console->P();
-    buffer[ size ] = 0; //la ultima entrada se marca como 0 para que se indique a donde acaba la lectura de memoria
+    buffer[ size ] = '\0'; //la ultima entrada se marca como 0 para que se indique a donde acaba la lectura de memoria
     int valorActual = machine->ReadMem(adress,1,&valorActual); //lee el primer caracter a escribir
     buffer[0] = valorActual;
     int pos = 1;
-    while(valorActual != 0){
+    while(valorActual != '\0'){
         machine->ReadMem(adress,1,&valorActual);
         buffer[pos] = valorActual;
         adress++; //se aumenta la direccion de memoria para leer el siguiente valor
@@ -221,22 +221,27 @@ newT->space = new AddrSpace( currentThread->space );
 	// We (kernel)-Fork to a new method to execute the child code
 	// Pass the user routine address, now in register 4, as a parameter
 	// Note: in 64 bits register 4 need to be casted to (void *)
-newT->Fork( NachosForkThread, (void *) machine->ReadRegister( 4 ) );
-
+void* direccion =  (void*)machine->ReadRegister( 4 );
+newT->Fork( NachosForkThread, direccion);
 	returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
-
 	DEBUG( 'u', "Exiting Fork System call\n" );
 }	// Kernel_Fork
-
+void Nachos_Yield(){ //SystemCall 10
+    currentThread->Yield();
+    returnFromSystemCall();
+}
+void Nachos_SemCreate(){ //SystemCall 11
+   int initVal = machine->ReadRegister(4);
+   Semaphore *s;
+   s = new Semaphore("Sem", initVal);
+}
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-    printf("\n exception type %d\n", SyscallException );
-    printf("which  %d\n", which );
-    printf("type %d\n ", type );
-  /*  if((type >= 0) && (type <= 13)){
+/*if((type >= 0) && (type <= 13)){
 	which = SyscallException;
 	}*/
+    DEBUG ('a', "Tipo de syscall %d y ExceptionType %d\n", type, which);
     switch ( which ) {
        case SyscallException:
           switch (type) {		  
@@ -269,12 +274,15 @@ void ExceptionHandler(ExceptionType which)
              //System Call # 8
                   break;
              case SC_Fork:
+                 Nachos_Fork();
              //System Call # 9
              break;
              case SC_Yield:
+                 Nachos_Yield();
              //System Call #10
              break;
              case SC_SemCreate:
+                 Nachos_SemCreate();
              //System Call #11
              break;
              case SC_SemDestroy:
@@ -284,7 +292,7 @@ void ExceptionHandler(ExceptionType which)
              //System Call # 13
              break;
              default:
-                printf("Unexpected syscall exception %d\n", type );
+                printf("Unexpected syscall exception %d\n", type);
                 ASSERT(false);
                 break;
           }break;

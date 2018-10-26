@@ -78,7 +78,8 @@ USERPROG_H = ../userprog/addrspace.h\
 	../machine/machine.h\
 	../machine/mipssim.h\
 	../machine/translate.h\
-	../userprog/nachostabla.h
+	../userprog/nachostabla.h\
+	../userprgo/TablaSemaforos.h
 
 USERPROG_C = ../userprog/addrspace.cc\
 	../userprog/bitmap.cc\
@@ -88,7 +89,8 @@ USERPROG_C = ../userprog/addrspace.cc\
 	../machine/machine.cc\
 	../machine/mipssim.cc\
 	../machine/translate.cc\
-	../userprog/nachostabla.cc
+	../userprog/nachostabla.cc\
+	../userprog/TablaSemaforos.cc
 USERPROG_O = addrspace.o bitmap.o exception.o progtest.o console.o machine.o \
 	mipssim.o translate.o nachostabla.o
 
