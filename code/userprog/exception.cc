@@ -76,18 +76,17 @@ void Nachos_Exit() { //System call 1
     currentThread->Finish();
 }
 void Nachos_Join(){ //System call 3
-    int spaceId = readRegister(4); //lee la id del proceso desde el registro 4
-   t = currentThread->getChild(spaceId);
+    int spaceId = machine->ReadRegister(4); //lee la id del proceso desde el registro 4
+   int t =  0; //currentThread->getChild(spaceId);
   if (t == NULL) //si no encuentra al hijo con id SpaceId
     {
 	// If NULL then spaceId was not found
         // among currentThread's children.
-        machine->writerRegister(2, CODIGOERROR); //como no existe el retorna un error al registro 2
+        machine->WriteRegister(2, CODIGOERROR); //como no existe el retorna un error al registro 2
        returnFromSystemCall();
     }
-    console->P();
-    Thread *t;
-    console->V();
+    Console->P();
+    Console->V();
     returnFromSystemCall();
 }
 void Nachos_Open() {                    // System call 5
@@ -184,7 +183,50 @@ void Nachos_Write() {                   // System call 7
  DEBUG('a',"Saliendo del write");
         returnFromSystemCall();		// Update the PC registers
 
-}       // Nachos_Write
+}// Nachos_Write
+void NachosForkThread( void * p ) { // for 64 bits version
+
+    AddrSpace *space;
+
+    space = currentThread->space;
+    space->InitRegisters();             // set the initial register values
+    space->RestoreState();              // load page table register
+
+// Set the return address for this thread to the same as the main thread
+// This will lead this thread to call the exit system call and finish
+    machine->WriteRegister( RetAddrReg, 4 );
+
+    machine->WriteRegister( PCReg, (long) p );
+    machine->WriteRegister( NextPCReg, (long) p + 4 );
+
+    machine->Run();                     // jump to the user progam
+    ASSERT(false);
+
+}
+void Nachos_Fork() {			// System call 9
+
+	DEBUG( 'u', "Entering Fork System call\n" );
+	// We need to create a new kernel thread to execute the user thread
+Thread * newT = new Thread( "child to execute Fork code" );
+
+	// We need to share the Open File Table structure with this new child
+currentThread->tablaArchivos->addThread();
+	// Child and father will also share the same address space, except for the stack
+	// Text, init data and uninit data are shared, a new stack area must be created
+	// for the new child
+	// We suggest the use of a new constructor in AddrSpace class,
+	// This new constructor will copy the shared segments (space variable) from currentThread, passed
+	// as a parameter, and create a new stack for the new child
+newT->space = new AddrSpace( currentThread->space );
+	// We (kernel)-Fork to a new method to execute the child code
+	// Pass the user routine address, now in register 4, as a parameter
+	// Note: in 64 bits register 4 need to be casted to (void *)
+newT->Fork( NachosForkThread, (void *) machine->ReadRegister( 4 ) );
+
+	returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
+
+	DEBUG( 'u', "Exiting Fork System call\n" );
+}	// Kernel_Fork
 
 void ExceptionHandler(ExceptionType which)
 {

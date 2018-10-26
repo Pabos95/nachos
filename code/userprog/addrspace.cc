@@ -144,6 +144,25 @@ int dir = noffH.code.inFileAddr;
 } */
     printf("Termina el constructor de Addrspace ");
 }
+//----------------------------------------------------------------------
+// AddrSpace::AddrSpace(AddrSpace* padre)
+// 	Construye
+//----------------------------------------------------------------------
+AddrSpace::AddrSpace(AddrSpace* padre){
+    numPages = padre->numPages;
+     pageTable = new TranslationEntry[numPages];
+     for (int i = 0; i < numPages; i++) {
+	pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	// for now, virtual page # = phys page #
+	pageTable[i].physicalPage = padre->pageTable[i].physicalPage;
+	pageTable[i].valid = padre->pageTable[i].valid;
+	pageTable[i].use = padre->pageTable[i].virtualPage;
+	pageTable[i].dirty = false;
+	pageTable[i].readOnly = false;  // if the code segment was entirely on 
+					// a separate page, we could set its 
+					// pages to be read-only
+    }
+}
+
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
