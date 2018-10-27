@@ -150,7 +150,7 @@ int dir = noffH.code.inFileAddr;
 //----------------------------------------------------------------------
 AddrSpace::AddrSpace(AddrSpace* padre){
      DEBUG('a', "entra al constructor de copias");
-    int paginasPila = divRoundUp (UserStackSize, PageSize); //busca el número de paginas que se deben asignar a la pila
+    int paginasPila = 8; //busca el número de paginas que se deben asignar a la pila
     numPages = padre->numPages;
      pageTable = new TranslationEntry[numPages];
      for (int i = 0; i < numPages-paginasPila; i++) {

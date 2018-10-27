@@ -99,14 +99,14 @@ void Nachos_Open() {                    // System call 5
 printf("Entra a open");
     char name[128];
     int dir =  machine->ReadRegister(4); //lee el registro pues en ese es el que está la dirección del archivo a leer
-    int caracterActual = 1;
+    int caracterActual = 0;
     int i = 0;
     int idFalsa;
-    while(caracterActual != 0){
+    do{
         machine->ReadMem(dir +i,1 ,&caracterActual); //lee un caracter de la memoria
         name[i++] = caracterActual;
         i++;
-    }
+    }while(caracterActual != 0);
 	// Read the name from the user memory, see 5 below
 	// Use NachosOpenFilesTable class to create a relationship
 	// between user file and unix file
