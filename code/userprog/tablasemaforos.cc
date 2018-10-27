@@ -7,11 +7,17 @@ NachosSemTable::NachosSemTable() { //el constructor inicializa un bitMap con n i
 NachosSemTable::~NachosSemTable(){
     delete semaphoreMap;
 }
-int NachosSemTable::Create(){
+long NachosSemTable::getSemaphore(long semId){
+    if(semaphoreMap->Test(semId)){
+        return arregloSemaforos[semId];
+    }
+    return -1; //si no se encuentra el semaforo devuelve -1
+}
+int NachosSemTable::Create(long semId){
     int resultado = semaphoreMap->Find();
-    //if(resultado != -1){
-      // arregloSemaforos[resultado] = sem;
-    //}
+    if(resultado != -1){
+      arregloSemaforos[resultado] = semId;
+    }
     return resultado;
 }
 int NachosSemTable::Destroy(int semId){
