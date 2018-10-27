@@ -209,7 +209,9 @@ void Nachos_Fork() {			// System call 9
 	DEBUG( 'u', "Entering Fork System call\n" );
 	// We need to create a new kernel thread to execute the user thread
 Thread * newT = new Thread( "child to execute Fork code" );
-
+delete newT->tablaArchivos;
+newT->tablaArchivos = currentThread->tablaArchivos; //se copia la tabla de archivos abiertos en el nuevo holo
+newT->tablaArchivos->addThread(); //como hay un nuevo hilo usando la tabla se aumenta el usage
 	// We need to share the Open File Table structure with this new child
 currentThread->tablaArchivos->addThread();
 	// Child and father will also share the same address space, except for the stack
@@ -222,8 +224,9 @@ newT->space = new AddrSpace( currentThread->space );
 	// We (kernel)-Fork to a new method to execute the child code
 	// Pass the user routine address, now in register 4, as a parameter
 	// Note: in 64 bits register 4 need to be casted to (void *)
-void* direccion =  (void*)machine->ReadRegister( 4 );
+void* direccion =  (void*)(long)machine->ReadRegister( 4 );
 newT->Fork( NachosForkThread, direccion);
+    currentThread->Yield();
 	returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
 	DEBUG( 'u', "Exiting Fork System call\n" );
 }	// Kernel_Fork

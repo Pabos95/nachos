@@ -153,23 +153,25 @@ AddrSpace::AddrSpace(AddrSpace* padre){
     int paginasPila = divRoundUp (UserStackSize, PageSize); //busca el número de paginas que se deben asignar a la pila
     numPages = padre->numPages;
      pageTable = new TranslationEntry[numPages];
-     for (int i = 0; i < numPages; i++) {
-	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+     for (int i = 0; i < numPages-paginasPila; i++) {
+	pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	// for now, virtual page # = phys page #
 	pageTable[i].valid = padre->pageTable[i].valid;
-	pageTable[i].use = padre->pageTable[i].virtualPage;
-	pageTable[i].dirty = false;
-	pageTable[i].readOnly = false;  // if the code segment was entirely on 
-					// a separate page, we could set its 
+    pageTable[i].physicalPage = padre->pageTable[i].physicalPage;
+	pageTable[i].use = padre->pageTable[i].use;
+	pageTable[i].dirty = padre->pageTable[i].dirty;
+	pageTable[i].readOnly = padre->pageTable[i].readOnly;
 					// pages to be read-only
-    if(i < numPages - paginasPila){
-        pageTable[i].physicalPage = padre->pageTable[i].physicalPage; //si es menor al numero de paginas de segmento se le asigna una pagina fisica
     }
-    else{
-         DEBUG('a', "llega al else del constructor de copias");
-    pageTable[i].physicalPage = mapaGlobal.Find(); //busca una pagina que se pueda usar el segmento de pila
-bzero (& (machine->mainMemory[pageTable[i].physicalPage]), PageSize); //inicializa la pagina de pila con un valor de 0
+    //se llenan las pagina de pila
+    for(int i = numPages - paginasPila; i < numPages; i++){
+        pageTable[i].virtualPage =  i;
+		pageTable[i].physicalPage = mapaGlobal.Find();
+		pageTable[i].valid = true;
+		pageTable[i].use = false;
+		pageTable[i].dirty = false;
+pageTable[i].readOnly = false;
     }
-    }
+    
 }
 
 
