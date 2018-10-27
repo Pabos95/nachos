@@ -50,6 +50,7 @@
 //	"which" is the kind of exception.  The list of possible exceptions 
 //	are in machine.h.
 //----------------------------------------------------------------------
+NachosSemTable* tablaSemaforos = new NachosSemTable(); //tabla de semaforos de nachos
 Semaphore*  Console = new Semaphore("Sem", 1); //inicializa un semaforo
         void returnFromSystemCall() {
 
@@ -234,11 +235,19 @@ void Nachos_SemCreate(){ //SystemCall 11
    int initVal = machine->ReadRegister(4);
    Semaphore* s = new Semaphore("Semaforo", initVal);
    long idSemaforo  = (long) s;
-   currentThread->tablaSemaforos->Create(idSemaforo);
+   tablaSemaforos->Create(idSemaforo);
    machine->WriteRegister(2, idSemaforo);
 }
 void Nachos_SemSignal(){
-    int semId = machine->ReadRegister(4);
+    int numSemaforo = machine->ReadRegister(4);  //se lee la id del semaforo
+    if(tablaSemaforos->getSemaphore(numSemaforo) != -1){
+       machine->WriteRegister(2, 1); //se escribe 1 para  indicar que el semaforo existe
+        Semaphore* s = (Semaphore*) tablaSemaforos->getSemaphore(numSemaforo);
+    s->V();
+    }
+   else{
+       machine->WriteRegister(2,-1);
+   }
 }
 void ExceptionHandler(ExceptionType which)
 {

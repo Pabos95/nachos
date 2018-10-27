@@ -7,7 +7,7 @@
 
 #ifndef SYSTEM_H
 #define SYSTEM_H
-
+#include "tablasemaforos.h"
 #include "copyright.h"
 #include "utility.h"
 #include "thread.h"
@@ -21,7 +21,6 @@ extern void Initialize(int argc, char **argv); 	// Initialization,
 						// called before anything else
 extern void Cleanup();				// Cleanup, called when
 						// Nachos is done.
-
 extern Thread *currentThread;			// the thread holding the CPU
 extern Thread *threadToBeDestroyed;  		// the thread that just finished
 extern Scheduler *scheduler;			// the ready list
