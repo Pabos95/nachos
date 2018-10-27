@@ -149,6 +149,7 @@ int dir = noffH.code.inFileAddr;
 // 	Construye
 //----------------------------------------------------------------------
 AddrSpace::AddrSpace(AddrSpace* padre){
+     DEBUG('a', "entra al constructor de copias");
     int paginasPila = divRoundUp (UserStackSize, PageSize); //busca el número de paginas que se deben asignar a la pila
     numPages = padre->numPages;
      pageTable = new TranslationEntry[numPages];
@@ -164,8 +165,9 @@ AddrSpace::AddrSpace(AddrSpace* padre){
         pageTable[i].physicalPage = padre->pageTable[i].physicalPage; //si es menor al numero de paginas de segmento se le asigna una pagina fisica
     }
     else{
+         DEBUG('a', "llega al else del constructor de copias");
     pageTable[i].physicalPage = mapaGlobal.Find(); //busca una pagina que se pueda usar el segmento de pila
-bzero (& (machine->mainMemory[pageTable[i].physicalPage * PageSize]), PageSize); //inicializa la pagina de pila con un valor de 0
+bzero (& (machine->mainMemory[pageTable[i].physicalPage]), PageSize); //inicializa la pagina de pila con un valor de 0
     }
     }
 }

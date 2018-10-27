@@ -39,6 +39,7 @@ Thread::Thread(const char* threadName)
     stack = NULL;
     status = JUST_CREATED;
     tablaArchivos = new NachosOpenFilesTable();
+    tablaSemaforos = new NachosSemTable();
 #ifdef USER_PROGRAM
     space = NULL;
 #endif

@@ -232,8 +232,11 @@ void Nachos_Yield(){ //SystemCall 10
 }
 void Nachos_SemCreate(){ //SystemCall 11
    int initVal = machine->ReadRegister(4);
-   Semaphore *s;
-   s = new Semaphore("Sem", initVal);
+   int idSemaforo = currentThread->tablaSemaforos->Create();
+   machine->WriteRegister(2, idSemaforo);
+}
+void Nachos_SemSignal(){
+    int semId = machine->ReadRegister(4);
 }
 void ExceptionHandler(ExceptionType which)
 {

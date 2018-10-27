@@ -42,6 +42,7 @@
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "addrspace.h"
+#include "tablasemaforos.h"
 #include "nachostabla.h"
 #endif
 
@@ -79,6 +80,7 @@ class Thread {
 
   public:
     NachosOpenFilesTable* tablaArchivos; //tabla de archivos abiertos para este hilo
+    NachosSemTable* tablaSemaforos;
     Thread(const char* debugName);	// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
