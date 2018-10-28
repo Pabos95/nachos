@@ -2,8 +2,15 @@
 using namespace std;
 NachosOpenFilesTable::NachosOpenFilesTable(){ //el constructor inicializa un bitMap con n items bits
     usage = 0;
-    openFilesMap = new BitMap(256);
-    openFiles = new int[256];
+    openFilesMap = new BitMap(256); //se hace un bitmap con el numero maximo de archivos que se puede tener abierto
+    openFiles = new int[256]; //
+    for(int i = 0; i <= 2; i++){
+        openFilesMap->Mark(i);
+        openFiles[i] = i;
+    }
+    for(int i = 0; i <= 255; i++){
+    openFiles[i] = i;
+    }
 }
 NachosOpenFilesTable::~NachosOpenFilesTable(){
     delete openFilesMap;

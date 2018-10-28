@@ -76,18 +76,29 @@ void Nachos_Exit() { //System call 1
     currentThread->tablaArchivos->delThread();
     currentThread->Finish();
 }
+struct SemJoin{ //struct que guarda un semaforo que sera usado para join, asi como la id y el nombre del archivo ejectubal
+   Semaphore* sem; //semaforo del join
+   char* nombreArchivo;
+   long threadId;
+};
+BitMap* mapaEjecutables = new BitMap(128); //mapa de bits para los archivos ejecutables
+SemJoin** matrizSemJoin = new SemJoin*[128]; //matriz para los semJoin de los archivos ejecutables
 void Nachos_Join(){ //System call 3
-    int spaceId = machine->ReadRegister(4); //lee la id del proceso desde el registro 4
-   int t =  0; //currentThread->getChild(spaceId);
-  if (t == NULL) //si no encuentra al hijo con id SpaceId
+    long spaceId = machine->ReadRegister(4); //lee la id del proceso desde el registro 4
+  if (mapaEjecutables->Test(spaceId)) //si se encuentra el ejecutable con ese spaceId
     {
-	// If NULL then spaceId was not found
-        // among currentThread's children.
-        machine->WriteRegister(2, CODIGOERROR); //como no existe el retorna un error al registro 2
+
+        Semaphore* nuevoSemJoin = new Semaphore("semJoin", 0);
+         matrizSemJoin[spaceId]->sem = nuevoSemJoin;
+       nuevoSemJoin->P(); //hace esperar al proceso al que se le hace join
+        machine->WriteRegister(2, 0); //avisa que el syscall se efectuo correctamente
+        delete matrizSemJoin[spaceId];
+        mapaEjecutables[spaceId];
        returnFromSystemCall();
     }
-    Console->P();
-    Console->V();
+    else{ //No se encontro el ejecutable
+        machine->WriteRegister(2, -1); //se  envia un mensaje de error al registro
+    }
     returnFromSystemCall();
 }
 void Nachos_Open() {                    // System call 5
