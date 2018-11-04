@@ -148,7 +148,6 @@ AddrSpace::AddrSpace(AddrSpace* padre){
     unsigned int paginasPila = padre->numPages - (UserStackSize/PageSize); 
     for (i = 0; i < padre->numPages; i++) {
         DEBUG('a', "Entra al primer for \n ");
-        std::cout<<i<<"\n"<<std::endl;
     	if(i<paginasPila){
 			this->pageTable[i].physicalPage = padre->pageTable[i].physicalPage; 
     	}else{
@@ -159,8 +158,9 @@ AddrSpace::AddrSpace(AddrSpace* padre){
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
 		pageTable[i].readOnly = false;  
+ std::cout<<i<<"\n"<<std::endl;
 }
-    
+  DEBUG('a', "sale del constructor de copias \n");  
 }
 
 
