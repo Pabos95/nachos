@@ -66,9 +66,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
-  mapaGlobal.Mark(2);
-  mapaGlobal.Mark(4);
-  mapaGlobal.Mark(6);
+
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
 			+ UserStackSize;	// we need to increase the size
@@ -97,55 +95,45 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		// pages to be read-only
 	}
 
-	// zero out the entire address space, to zero the unitialized data segment
-	// and the stack segment
-	//bzero(machine->mainMemory, size);
+	bzero(machine->mainMemory, size);
 
 	// then, copy in the code and data segments into memory
 
-	/* Para el segmento de codigo*/
+	int direccionMemoriaCodigo = noffH.code.inFileAddr;
+	int direccionMemoriaDatos = noffH.initData.inFileAddr;
+	int numPaginasCodigo = divRoundUp(noffH.code.size, numPages);
+	int numPaginasDatos = divRoundUp(noffH.initData.size, numPages);
 
-	int x = noffH.code.inFileAddr;
-	int y = noffH.initData.inFileAddr;
-	int index;
-	int codeNumPages = divRoundUp(noffH.code.size, numPages);
-	int segmentNumPages = divRoundUp(noffH.initData.size, numPages);
-
-	DEBUG('a', "Initializing code segment, at 0x%x, size %d, numero de paginas %d\n",
-	noffH.code.virtualAddr, noffH.code.size, codeNumPages);
-
-	for (index = 0; index < codeNumPages; ++ index )
+	for (int i = 0; i < numPaginasCodigo; i++) //llena el segmento de codigo
 	{
-		executable->ReadAt(&(machine->mainMemory[ pageTable[index].physicalPage *128 ] ),
-		PageSize, x );
-		x+=128;
+		executable->ReadAt(&(machine->mainMemory[ pageTable[i].physicalPage *128 ] ),
+		PageSize, direccionMemoriaCodigo );
+		direccionMemoriaCodigo+=128;
 	}
 
-	if (noffH.initData.size > 0) {
-		DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-		noffH.initData.virtualAddr, noffH.initData.size);
-		for (index = codeNumPages; index < segmentNumPages; ++ index )
+	if (noffH.initData.size > 0) { //llena el segmento de datos inicializados
+		for (int i = numPaginasCodigo; i < numPaginasDatos; i++)
 		{
-			executable->ReadAt(&(machine->mainMemory[ pageTable[index].physicalPage *128 ] ),
-			PageSize, y );
-			y+=128;
+			executable->ReadAt(&(machine->mainMemory[ pageTable[i].physicalPage *128 ] ),
+			PageSize, direccionMemoriaDatos);
+			direccionMemoriaDatos+=128;
 		}
 	}
 
-    printf("Termina el constructor de Addrspace ");
+    DEBUG('u',"Termina el constructor de Addrspace ");
 }
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace(AddrSpace* padre)
 // 	Construye
 //----------------------------------------------------------------------
 AddrSpace::AddrSpace(AddrSpace* padre){
-     DEBUG('a', "entra al constructor de copias \n");
+     DEBUG('a', "entra al constructor de addrspace hijos \n");
    this->pageTable = new TranslationEntry[padre->numPages];
    DEBUG('a', "inicializa el page Table \n ");
     //inicializa codigo y variables
     unsigned int i;
     this->numPages = padre->numPages;
-    unsigned int paginasPila = padre->numPages - (UserStackSize/PageSize); 
+    unsigned int paginasPila = padre->numPages - (UserStackSize/PageSize); //asigna el numero de paginas de la pila
     for (i = 0; i < padre->numPages; i++) {
         DEBUG('a', "Entra al primer for \n ");
     	if(i<paginasPila){
@@ -158,7 +146,6 @@ AddrSpace::AddrSpace(AddrSpace* padre){
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
 		pageTable[i].readOnly = false;  
- std::cout<<i<<"\n"<<std::endl;
 }
   DEBUG('a', "sale del constructor de copias \n");  
 }

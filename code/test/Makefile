@@ -64,8 +64,6 @@ matmult.o: matmult.c
 matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	../bin/coff2noff matmult.coff matmult
-
-
 # Estas reglas sirven para compilar programas simples,
 # que consistan en un único fuente.
 # Las reglas anteriores para construir los ejecutables

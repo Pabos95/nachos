@@ -10,8 +10,8 @@ using namespace std;
     int Create(long semId); // Register the file handle
     int Destroy( int SemId);      // Unregister the file handle
     long getSemaphore(long SemId); //devuelve un long que puede ser castedo a un puntero a semaforos
-    void addThread();		// If a user thread is using this table, add it
-    void delThread();		// If a user thread is using this table, delete it
+    void addSem();		// Aumenta en uno el contador
+    void delSem();		// Disminuye en uno el contador
 
     void Print();               // Print contents
     

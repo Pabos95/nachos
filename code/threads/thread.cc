@@ -97,13 +97,16 @@ Thread::Fork(VoidFunctionPtr func, void* arg)
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (HostMemoryAddress) func, arg);
 #endif
-
+DEBUG('t', "Reserva memoria para la pila");
     StackAllocate(func, arg);
-
+DEBUG('t', "sale del stack allocate");
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    DEBUG('t', "sale del SetLevel");
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
 					// are disabled!
+    DEBUG('t', "sale del ready to run");
     interrupt->SetLevel(oldLevel);
+ DEBUG('t', "sale del fork de thread");   
 }    
 
 //----------------------------------------------------------------------

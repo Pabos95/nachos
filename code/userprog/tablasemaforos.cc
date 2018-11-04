@@ -28,9 +28,9 @@ int NachosSemTable::Destroy(int semId){
     }
     return -1; //si el semaforo no existe retorna -1
 }
-void NachosSemTable::addThread(){ //si hay un nuevo hilo se aumenta la variable de uso de la  tabla
+void NachosSemTable::addSem(){ //si hay un nuevo semaforo se aumenta la variable de uso de la  tabla
   usage++;
 }
-void NachosSemTable::delThread(){ //si hay un nuevo hilo se disiminuye en uno la variable de uso de la tabla
+void NachosSemTable::delSem(){ //si se destruye un semaforo se disiminuye en uno la variable de uso de la tabla
  usage--;
 }

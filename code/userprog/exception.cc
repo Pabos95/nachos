@@ -197,50 +197,59 @@ void Nachos_Write() {                   // System call 7
 
 }// Nachos_Write
 void NachosForkThread( void * p ) { // for 64 bits version
+  AddrSpace *space;
+  long dir = (long) p;
 
-    AddrSpace *space;
+  space = currentThread->space;
+  space->InitRegisters();             // set the initial register values
+  space->RestoreState();              // load page table register
 
-    space = currentThread->space;
-    space->InitRegisters();             // set the initial register values
-    space->RestoreState();              // load page table register
+  // Set the return address for this thread to the same as the main thread
+  // This will lead this thread to call the exit system call and finish
+  machine->WriteRegister( RetAddrReg, 4 );
 
-// Set the return address for this thread to the same as the main thread
-// This will lead this thread to call the exit system call and finish
-    machine->WriteRegister( RetAddrReg, 4 );
+  machine->WriteRegister( PCReg, dir );
+  machine->WriteRegister( NextPCReg, dir + 4 );
 
-    machine->WriteRegister( PCReg, (long) p );
-    machine->WriteRegister( NextPCReg, (long) p + 4 );
 
-    machine->Run();                     // jump to the user progam
-    ASSERT(false);
+  machine->Run();                     // jump to the user progam
 
+  ASSERT(false);
 }
-void Nachos_Fork() {			// System call 9
 
-	DEBUG( 'u', "Entering Fork System call\n" );
-	// We need to create a new kernel thread to execute the user thread
-Thread * newT = new Thread( "child to execute Fork code" );
-delete newT->tablaArchivos;
-newT->tablaArchivos = currentThread->tablaArchivos; //se copia la tabla de archivos abiertos en el nuevo holo
-newT->tablaArchivos->addThread(); //como hay un nuevo hilo usando la tabla se aumenta el usage
-	// We need to share the Open File Table structure with this new child
-currentThread->tablaArchivos->addThread();
-	// Child and father will also share the same address space, except for the stack
-	// Text, init data and uninit data are shared, a new stack area must be created
-	// for the new child
-	// We suggest the use of a new constructor in AddrSpace class,
-	// This new constructor will copy the shared segments (space variable) from currentThread, passed
-	// as a parameter, and create a new stack for the new child
-newT->space = new AddrSpace( currentThread->space );
-	// We (kernel)-Fork to a new method to execute the child code
-	// Pass the user routine address, now in register 4, as a parameter
-	// Note: in 64 bits register 4 need to be casted to (void *)
-void* direccion =  (void*)(long)machine->ReadRegister( 4 );
-newT->Fork( NachosForkThread, direccion);
-    currentThread->Yield();
-	returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
-	DEBUG( 'u', "Exiting Fork System call\n" );
-}	// Kernel_Fork
+void Nachos_Fork()
+{
+  DEBUG( 'u', "Entering Fork System call\n" );
+  // We need to create a new kernel thread to execute the user thread
+  Thread * newT = new Thread( "child to execute Fork code" );
+DEBUG( 'u', "Nuevo hilo creado \n" );
+  delete  newT->tablaSemaforos;
+  newT->tablaSemaforos = currentThread->tablaSemaforos;
+  newT->tablaSemaforos->addSem();
+
+
+  // We need to share the Open File Table structure with this new child
+  delete  newT->tablaArchivos;
+  newT->tablaArchivos = currentThread->tablaArchivos;
+  newT->tablaArchivos->addThread();
+
+  // Child and father will also share the same address space, except for the stack
+  // Text, init data and uninit data are shared, a new stack area must be created
+  // for the new child
+  // We suggest the use of a new constructor in AddrSpace class,
+  // This new constructor will copy the shared segments (space variable) from currentThread, passed
+  // as a parameter, and create a new stack for the new child
+  newT->space = new AddrSpace( currentThread->space );
+DEBUG( 'u', "Nuevo addrspace creado \n" );
+  // We (kernel)-Fork to a new method to execute the child code
+  // Pass the user routine address, now in register 4, as a parameter
+  // Note: in 64 bits register 4 need to be casted to (void *)
+  newT->Fork( NachosForkThread, (void*)(machine->ReadRegister( 4 ))); 
+  currentThread->Yield();
+  returnFromSystemCall();	// This adjust the PrevPC, PC, and NextPC registers
+
+  DEBUG( 'u', "Exiting Fork System call\n" );
+} // Nachos_Fork
 void Nachos_Yield(){ //SystemCall 10
     currentThread->Yield();
     returnFromSystemCall();
@@ -272,7 +281,8 @@ void ExceptionHandler(ExceptionType which)
     DEBUG ('a', "Tipo de syscall %d y ExceptionType %d\n", type, which);
     switch ( which ) {
        case SyscallException:
-          switch (type) {		  
+          switch (type) {	
+            DEBUG('u', "Entra al switch");
              case SC_Halt:
                 Nachos_Halt();             // System call # 0
                 break;
@@ -291,6 +301,7 @@ void ExceptionHandler(ExceptionType which)
                 Nachos_Write();             // System call # 7
                 break;
              case SC_Fork:
+                 DEBUG('u', "case SC_Fork ");
                  Nachos_Fork();
              //System Call # 9
              break;
