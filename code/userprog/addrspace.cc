@@ -147,7 +147,7 @@ AddrSpace::AddrSpace(AddrSpace* padre){
 		pageTable[i].dirty = false;
 		pageTable[i].readOnly = false;  
 }
-  DEBUG('a', "sale del constructor de copias \n");  
+  DEBUG('a', "sale del constructor de addrspace hijos \n");  
 }
 
 

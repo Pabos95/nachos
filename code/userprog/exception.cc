@@ -231,7 +231,7 @@ DEBUG( 'u', "Nuevo hilo creado \n" );
   // We need to share the Open File Table structure with this new child
   delete  newT->tablaArchivos;
   newT->tablaArchivos = currentThread->tablaArchivos;
-  newT->tablaArchivos->addThread();
+  newT->tablaArchivos->addThread(); //actualiza las estadisticas de uso
 
   // Child and father will also share the same address space, except for the stack
   // Text, init data and uninit data are shared, a new stack area must be created
