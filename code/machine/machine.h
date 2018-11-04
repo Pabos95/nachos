@@ -32,7 +32,7 @@ const int PageSize = SectorSize; 	// set the page size equal to
 					// the disk sector size, for
 					// simplicity
 
-const int NumPhysPages = 2048; //se aumento el numero de paginas fisicas para que corriera el test pingPong
+const int NumPhysPages = 512; //se aumento el numero de paginas fisicas para que corriera el test pingPong
 const int MemorySize =  NumPhysPages * PageSize;
 const int TLBSize = 4;			// if there is a TLB, make it small
 
