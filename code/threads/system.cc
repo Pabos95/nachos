@@ -88,7 +88,7 @@ Initialize(int argc, char **argv)
     int argCount;
     const char* debugArgs = "";
     bool randomYield = false;
-    
+    mapaGlobal = BitMap(NumPhysPages);
 
 // 2007, Jose Miguel Santos Espino
     bool preemptiveScheduling = false;

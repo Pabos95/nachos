@@ -82,66 +82,56 @@ AddrSpace::AddrSpace(OpenFile *executable)
 						// at least until we have
 						// virtual memory
 
-    DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
-					numPages, size);
-// first, set up the translation 
-    pageTable = new TranslationEntry[numPages];
-    for (i = 0; i < numPages; i++) {
-	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = mapaGlobal.Find();
-	pageTable[i].valid = true;
-	pageTable[i].use = false;
-	pageTable[i].dirty = false;
-	pageTable[i].readOnly = false;  // if the code segment was entirely on 
-					// a separate page, we could set its 
-					// pages to be read-only
-    }
-    
-// zero out the entire address space, to zero the unitialized data segment 
-// and the stack segment
-    bzero(machine->mainMemory, size);
+    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+	numPages, size);
+	// first, set up the translation
+	pageTable = new TranslationEntry[numPages];
+	for (i = 0; i < numPages; i++) {
+		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		pageTable[i].physicalPage = mapaGlobal.Find();
+		pageTable[i].valid = true;
+		pageTable[i].use = false;
+		pageTable[i].dirty = false;
+		pageTable[i].readOnly = false;  // if the code segment was entirely on
+		// a separate page, we could set its
+		// pages to be read-only
+	}
 
-// then, copy in the code and data segments into memory
-    int numPaginasCodigo = divRoundUp(noffH.code.size, PageSize); //divide el tamano del segmento de codigo entre el numero de paginas
-int dir = noffH.code.inFileAddr;
-    printf("Tamaño del segmento de datos inicializados \n" );
-    printf("%d",noffH.initData.size);
-    printf("Tamaño del segmento de datos no inicializados \n" );
-    printf("%d",noffH.uninitData.size);
-    printf("Tamaño del segmento de codigo es \n ");
-    printf("%d",noffH.code.size);
-  if (noffH.code.size > 0) {
-        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-			noffH.code.virtualAddr, noffH.code.size);
-        for(int i = 0; i < numPaginasCodigo; i++){
-        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage*128]),
-			PageSize, dir);
-		 dir += 128;	
-        }
-    }
-    dir = noffH.initData.inFileAddr;
-     int numPaginasDatos = divRoundUp(noffH.initData.size, PageSize); //divide el tamano del segmento de codigo entre el numero de paginas
-    if (noffH.initData.size > 0) {
-           DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
-			noffH.initData.virtualAddr, noffH.initData.size);
-        for(int i = 0; i < numPaginasDatos; i++){
-        executable->ReadAt(&(machine->mainMemory[pageTable[i].physicalPage*128]),
-			PageSize, dir);
-			dir += 128;
-        }
-    } //*/ //esto de leer por páginas aún no funciona
-  /*    if (noffH.code.size > 0) {
-        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-			noffH.code.virtualAddr, noffH.code.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-			noffH.code.size, noffH.code.inFileAddr);
-    }
-    if (noffH.initData.size > 0) {
-        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
-			noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-			noffH.initData.size, noffH.initData.inFileAddr);
-} */
+	// zero out the entire address space, to zero the unitialized data segment
+	// and the stack segment
+	//bzero(machine->mainMemory, size);
+
+	// then, copy in the code and data segments into memory
+
+	/* Para el segmento de codigo*/
+
+	int x = noffH.code.inFileAddr;
+	int y = noffH.initData.inFileAddr;
+	int index;
+	int codeNumPages = divRoundUp(noffH.code.size, numPages);
+	int segmentNumPages = divRoundUp(noffH.initData.size, numPages);
+
+	DEBUG('a', "Initializing code segment, at 0x%x, size %d, numero de paginas %d\n",
+	noffH.code.virtualAddr, noffH.code.size, codeNumPages);
+
+	for (index = 0; index < codeNumPages; ++ index )
+	{
+		executable->ReadAt(&(machine->mainMemory[ pageTable[index].physicalPage *128 ] ),
+		PageSize, x );
+		x+=128;
+	}
+
+	if (noffH.initData.size > 0) {
+		DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+		noffH.initData.virtualAddr, noffH.initData.size);
+		for (index = codeNumPages; index < segmentNumPages; ++ index )
+		{
+			executable->ReadAt(&(machine->mainMemory[ pageTable[index].physicalPage *128 ] ),
+			PageSize, y );
+			y+=128;
+		}
+	}
+
     printf("Termina el constructor de Addrspace ");
 }
 //----------------------------------------------------------------------
@@ -149,28 +139,26 @@ int dir = noffH.code.inFileAddr;
 // 	Construye
 //----------------------------------------------------------------------
 AddrSpace::AddrSpace(AddrSpace* padre){
-     DEBUG('a', "entra al constructor de copias");
-    int paginasPila = 8; //busca el número de paginas que se deben asignar a la pila
-    numPages = padre->numPages;
-     pageTable = new TranslationEntry[numPages];
-     for (int i = 0; i < numPages-paginasPila; i++) {
-	pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	// for now, virtual page # = phys page #
-	pageTable[i].valid = padre->pageTable[i].valid;
-    pageTable[i].physicalPage = padre->pageTable[i].physicalPage;
-	pageTable[i].use = padre->pageTable[i].use;
-	pageTable[i].dirty = padre->pageTable[i].dirty;
-	pageTable[i].readOnly = padre->pageTable[i].readOnly;
-					// pages to be read-only
-    }
-    //se llenan las pagina de pila
-    for(int i = numPages - paginasPila; i < numPages; i++){
-        pageTable[i].virtualPage =  i;
-		pageTable[i].physicalPage = mapaGlobal.Find();
+     DEBUG('a', "entra al constructor de copias \n");
+   this->pageTable = new TranslationEntry[padre->numPages];
+   DEBUG('a', "inicializa el page Table \n ");
+    //inicializa codigo y variables
+    int i;
+    this->numPages = padre->numPages;
+    int paginasPila = padre->numPages - (UserStackSize/PageSize); 
+    for (i = 0; i < padre->numPages; i++) {
+        DEBUG('a', "Entra al primer for \n "); 
+    	if(i<paginasPila){
+			this->pageTable[i].physicalPage = padre->pageTable[i].physicalPage; 
+    	}else{
+    		this->pageTable[i].physicalPage = mapaGlobal.Find();
+    	}
+		this->pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	 	
 		pageTable[i].valid = true;
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
-pageTable[i].readOnly = false;
-    }
+		pageTable[i].readOnly = false;  
+}
     
 }
 

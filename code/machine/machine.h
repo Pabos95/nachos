@@ -33,7 +33,7 @@ const int PageSize = SectorSize; 	// set the page size equal to
 					// simplicity
 
 const int NumPhysPages = 32;
-const int MemorySize = NumPhysPages * PageSize;
+const int MemorySize =  NumPhysPages * PageSize;
 const int TLBSize = 4;			// if there is a TLB, make it small
 
 enum ExceptionType { NoException,           // Everything ok!

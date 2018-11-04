@@ -152,7 +152,7 @@ void Nachos_Write() {                   // System call 7
  int resultado;
 	// Need a semaphore to synchronize access to console
     Console->P();
-    buffer[ size ] = '\0'; //la ultima entrada se marca como 0 para que se indique a donde acaba la lectura de memoria
+    buffer[ size ] = {0}; //la ultima entrada se marca como 0 para que se indique a donde acaba la lectura de memoria
     int valorActual = machine->ReadMem(adress,1,&valorActual); //lee el primer caracter a escribir
     buffer[0] = valorActual;
     int pos = 1;
@@ -280,27 +280,16 @@ void ExceptionHandler(ExceptionType which)
              // System call # 1
                  Nachos_Exit();
                  break;
-             case SC_Exec:  
-             // System call # 2
-                  break;
              case SC_Join: 
              // System call # 3
-                  break;
-             case SC_Create: 
-             // System call # 4
-                  break;        
+                 Nachos_Join();
+                  break;       
              case SC_Open: 
                 Nachos_Open();             // System call # 5
                 break;
-             case SC_Read:
-              //system Call #6
-                  break;
              case SC_Write:
                 Nachos_Write();             // System call # 7
                 break;
-             case SC_Close:
-             //System Call # 8
-                  break;
              case SC_Fork:
                  Nachos_Fork();
              //System Call # 9
@@ -312,12 +301,6 @@ void ExceptionHandler(ExceptionType which)
              case SC_SemCreate:
                  Nachos_SemCreate();
              //System Call #11
-             break;
-             case SC_SemDestroy:
-             //System Call #12
-             break;
-             case SC_SemSignal:
-             //System Call # 13
              break;
              default:
                 printf("Unexpected syscall exception %d\n", type);
