@@ -143,11 +143,12 @@ AddrSpace::AddrSpace(AddrSpace* padre){
    this->pageTable = new TranslationEntry[padre->numPages];
    DEBUG('a', "inicializa el page Table \n ");
     //inicializa codigo y variables
-    int i;
+    unsigned int i;
     this->numPages = padre->numPages;
-    int paginasPila = padre->numPages - (UserStackSize/PageSize); 
+    unsigned int paginasPila = padre->numPages - (UserStackSize/PageSize); 
     for (i = 0; i < padre->numPages; i++) {
-        DEBUG('a', "Entra al primer for \n "); 
+        DEBUG('a', "Entra al primer for \n ");
+        std::cout<<i<<"\n"<<std::endl;
     	if(i<paginasPila){
 			this->pageTable[i].physicalPage = padre->pageTable[i].physicalPage; 
     	}else{
