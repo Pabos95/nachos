@@ -1,4 +1,4 @@
-// exception.cc 
+// exception.cc
 //	Entry point into the Nachos kernel from user programs.
 //	There are two kinds of things that can cause control to
 //	transfer back to here from user code:
@@ -9,7 +9,7 @@
 //
 //	exceptions -- The user code does something that the CPU can't handle.
 //	For instance, accessing memory that doesn't exist, arithmetic errors,
-//	etc.  
+//	etc.
 //
 //	Interrupts (which can also cause control to transfer from user
 //	code into the Nachos kernel) are handled elsewhere.
@@ -18,7 +18,7 @@
 // Everything else core dumps.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -27,7 +27,7 @@
 #include "synch.h"
 #include "stdio.h"
 #define CODIGOERROR -1
-#define RSYSTEMCALL 2 
+#define RSYSTEMCALL 2
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -42,12 +42,12 @@
 //		arg3 -- r6
 //		arg4 -- r7
 //
-//	The result of the system call, if any, must be put back into r2. 
+//	The result of the system call, if any, must be put back into r2.
 //
 // And don't forget to increment the pc before returning. (Or else you'll
 // loop making the same system call forever!
 //
-//	"which" is the kind of exception.  The list of possible exceptions 
+//	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
 NachosSemTable* tablaSemaforos = new NachosSemTable(); //tabla de semaforos de nachos
@@ -101,6 +101,23 @@ void Nachos_Join(){ //System call 3
     }
     returnFromSystemCall();
 }
+
+void Nachos_Close() {
+  //Leemos dirección al archivo
+    int closeF = machine -> ReadRegister(4);
+    if(closeF != 0)
+    {
+      printf("Cierra archivo\n",closeF );
+      delete (OpenFile *)closeF;
+    }
+    //Lo cerramos si existe.
+    machine -> WriteRegister(PrevPCReg, machine -> ReadRegister(PCReg));
+		machine -> WriteRegister(PCReg, machine -> ReadRegister(NextPCReg));
+		machine -> WriteRegister(NextPCReg, machine -> ReadRegister(PCReg) + 4);
+
+
+}
+
 void Nachos_Open() {                    // System call 5
 /*System call definition described to user
 	int Open(
@@ -137,7 +154,7 @@ DEBUG ('a', "Termina Open.\n");
 
 void Nachos_Write() {                   // System call 7
         DEBUG('a',"Entra a write \n");
-        int adress = machine->ReadRegister(4); //direccion  del buffer 
+        int adress = machine->ReadRegister(4); //direccion  del buffer
           DEBUG('a',"Lee el registro 4 \n");
         size_t size = machine->ReadRegister( 5 );	// Read size to write
          char buffer[size+1];
@@ -169,7 +186,7 @@ void Nachos_Write() {                   // System call 7
 			machine->WriteRegister( 2, -1 );
 			break;
 		case  ConsoleOutput: //en caso de que lo que se solicite sea imprimir en la terminal
-			printf( "%s", buffer ); 
+			printf( "%s", buffer );
 		break;
 		case ConsoleError:	// This trick permits to write integers to console
 			printf( "%d\n", machine->ReadRegister( 4 ) );
@@ -196,6 +213,135 @@ void Nachos_Write() {                   // System call 7
         returnFromSystemCall();		// Update the PC registers
 
 }// Nachos_Write
+
+void Nachos_Read(){
+  //Leemos el id para ver si es una entreada de consola o de un archivo
+      int id = machine->ReadRegister(6);
+      if( id == ConsoleInput ){
+        int buffer = machine->ReadRegister(4);
+        int size  = machine->ReadRegister(5);
+        char ch;
+        //En caso de que sea de consola, leemos el puntero al inicio del búfer y su tamaño
+        //Y luego leemos hasta que ya no haya
+        for( int i = 0; i < size; i++){
+            if( scanf("%c",&ch) != EOF )
+                  if( machine->WriteMem(buffer + i , 1, (int)ch ) == true )
+                        break;
+        }
+
+        machine->WriteRegister(2,0);
+        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+        machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg)+4);
+        }
+      else{
+        //En caso de que sea un archivo igual leemos todas esas variables
+        OpenFile* file = (OpenFile*)id;
+
+        	int buffer = machine -> ReadRegister(4);
+        	int size = machine -> ReadRegister(5);
+          int result = 0;
+
+          //Y leemos el a rchivo con la función SC_Read
+        	if (size > 0 && size <= 128)
+        	{
+        		char temp[128];
+        		result = file -> Read(temp, size);
+        		for (int i = 0; i < size; ++ i)
+        		{
+        			machine -> WriteMem(buffer + i, 1, (int)(temp[i]));
+        		}
+        		printf("buffer:%s.\n", temp);
+        	}
+
+        	  machine -> WriteRegister(2, result);
+        		machine -> WriteRegister(PrevPCReg, machine -> ReadRegister(PCReg));
+        		machine -> WriteRegister(PCReg, machine -> ReadRegister(NextPCReg));
+        		machine -> WriteRegister(NextPCReg, machine -> ReadRegister(PCReg) + 4);
+        //return result;
+      }
+}
+
+void Nachos_Create(){
+      //Leemos el puntero al búfer y el tamaño
+      int bufOffset = machine -> ReadRegister(4);
+      int size = machine -> ReadRegister(5);
+  	  char fileName[size + 1] = {0};
+
+      //Luego leemos el nombre del archivo a crear
+  		for (int i = 0; i < size; ++ i)
+  		{
+  			if (machine -> ReadMem(bufOffset + i, 1, (int *)(&fileName[i])) == false)
+  			{
+  				break;
+  			}
+  			if (fileName[i] == 0)
+  				break;
+  		}
+
+      //Y usamos la función Create para crearlo
+  		printf("Creamos archivo == %s.\n", fileName);
+  		int result = (int)fileSystem -> Create(fileName, 128);
+  		DEBUG('a', "[]Creación de archivo: %s", fileName);
+
+  		machine -> WriteRegister(2, result);
+  		machine -> WriteRegister(PrevPCReg, machine -> ReadRegister(PCReg));
+  		machine -> WriteRegister(PCReg, machine -> ReadRegister(NextPCReg));
+  		machine -> WriteRegister(NextPCReg, machine -> ReadRegister(PCReg) + 4);
+
+
+}
+
+void Nachos_Exec(){
+  //2
+DEBUG('j', "Enter Exec\n" );
+
+//Leelmos el nombre del archivo a ejecutar
+int size = machine -> ReadRegister(5);
+char fileName[size + 1]={0};
+int bufOffset = machine->ReadRegister(4);
+for( int i = 0; i < size; i++ ){
+machine->ReadMem( bufOffset + i, 1, (int*)(&fileName[i]) );
+if( fileName[i] == '\0' )
+  break;
+}
+
+//Abrimos dicho archivo
+OpenFile *executable = fileSystem->Open(fileName);
+
+if( executable != NULL ){
+
+//Si lo podemos ejecutar entonces creamos un thread y un addrespace para él
+Thread* newThread = new Thread(fileName);
+AddrSpace *sspace;
+DEBUG('j', "ExecThread: %s\n",fileName );
+
+//Y lo ejecutamos
+sspace = new AddrSpace(executable);
+sspace->InitRegisters(); //Registros iniciales
+newThread->space = sspace;
+newThread->SaveUserState(); //Guardamos estado
+
+currentThread -> Yield();
+
+
+
+delete executable;//Cerramos el archivo
+}
+else{
+printf("Unable to open file %s\n", fileName);
+}
+
+
+machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg)+4);
+
+
+
+}
+
+
 void NachosForkThread( void * p ) { // for 64 bits version
 
     AddrSpace *space;
@@ -252,7 +398,14 @@ void Nachos_SemCreate(){ //SystemCall 11
    tablaSemaforos->Create(idSemaforo);
    machine->WriteRegister(2, idSemaforo);
 }
-void Nachos_SemSignal(){
+
+void Nachos_SemDestroy(){ //SystemCall 12
+   int initVal = machine->ReadRegister(4);
+   tablaSemaforos->Destroy(initVal);
+}
+
+
+void Nachos_SemSignal(){//SystemCall 13
     int numSemaforo = machine->ReadRegister(4);  //se lee la id del semaforo
     if(tablaSemaforos->getSemaphore(numSemaforo) != -1){
        machine->WriteRegister(2, 1); //se escribe 1 para  indicar que el semaforo existe
@@ -263,6 +416,19 @@ void Nachos_SemSignal(){
        machine->WriteRegister(2,-1);
    }
 }
+
+void Nachos_SemWait(){//SystemCall 14
+    int numSemaforo = machine->ReadRegister(4);  //se lee la id del semaforo
+    if(tablaSemaforos->getSemaphore(numSemaforo) != -1){
+       machine->WriteRegister(2, 1); //se escribe 1 para  indicar que el semaforo existe
+        Semaphore* s = (Semaphore*) tablaSemaforos->getSemaphore(numSemaforo);
+    s->P();
+    }
+   else{
+       machine->WriteRegister(2,-1);
+   }
+}
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -272,31 +438,35 @@ void ExceptionHandler(ExceptionType which)
     DEBUG ('a', "Tipo de syscall %d y ExceptionType %d\n", type, which);
     switch ( which ) {
        case SyscallException:
-          switch (type) {		  
+          switch (type) {
              case SC_Halt:
                 Nachos_Halt();             // System call # 0
                 break;
-             case SC_Exit:   
+             case SC_Exit:
              // System call # 1
                  Nachos_Exit();
                  break;
-             case SC_Exec:  
+             case SC_Exec:
              // System call # 2
+                  Nachos_Exec();
                   break;
-             case SC_Join: 
+             case SC_Join:
              // System call # 3
+                  Nachos_Join();
                   break;
-             case SC_Create: 
+             case SC_Create:
              // System call # 4
-                  break;        
-             case SC_Open: 
-                Nachos_Open();             // System call # 5
+                  break;
+             case SC_Open:
+                Nachos_Open();
+             // System call # 5
                 break;
              case SC_Read:
               //system Call #6
                   break;
              case SC_Write:
-                Nachos_Write();             // System call # 7
+                Nachos_Write();
+            // System call # 7
                 break;
              case SC_Close:
              //System Call # 8
@@ -318,6 +488,9 @@ void ExceptionHandler(ExceptionType which)
              break;
              case SC_SemSignal:
              //System Call # 13
+             break;
+             case SC_SemWait:
+             //System Call # 14
              break;
              default:
                 printf("Unexpected syscall exception %d\n", type);
