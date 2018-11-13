@@ -497,9 +497,35 @@ void ExceptionHandler(ExceptionType which)
                 ASSERT(false);
                 break;
           }break;
-       default:
-          printf( "Unexpected exception %d\n", which );
-          ASSERT(false);
-          break;
+               case PageFaultException:
+                    printf("Excepcion de page fault");   // No valid translation found
+                    break;
+	       case  ReadOnlyException:     // Write attempted to page marked 
+		     printf("Excepcion de read only");			    // "read-only"
+                     ASSERT(false);
+                     break;
+		case  BusErrorException:     // Translation resulted in an 
+		      printf("Execepcion de Bus Error");	
+		    // invalid physical address
+                       ASSERT(false);
+                       break;
+		case AddressErrorException: // Unaligned reference or one that
+					    // was beyond the end of the
+					    // address space
+                     printf("Excepcion de Adress Error);
+                     ASSERT(false);
+                       break;
+		case OverflowException:     // Integer overflow in add or sub.
+                     printf("Excepcion de over flow");
+                     ASSERT(false);
+                     break;
+		case IllegalInstrException:
+                     printf("Excepcion de instruccion ilegal");
+                     ASSERT(false);
+                     break;
+                default:
+                       printf( "Unexpected exception %d\n", which );
+                       ASSERT(false);
+                       break;
     }
 }
