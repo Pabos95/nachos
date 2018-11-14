@@ -88,6 +88,5 @@ extern void DEBUG (char flag, const char* format, ...);  	// Print debug message
 	fflush(stderr);							      \
         Abort();                                                              \
     }
-
 #endif // UTILITY_H
 
