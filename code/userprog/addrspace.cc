@@ -86,8 +86,13 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	pageTable = new TranslationEntry[numPages];
 	for (i = 0; i < numPages; i++) {
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+#ifdef VM
+      pageTable[i].valid = false;
+      pageTable[i].physicalPage = -1;
+#else
 		pageTable[i].physicalPage = mapaGlobal.Find();
 		pageTable[i].valid = true;
+#endif
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
 		pageTable[i].readOnly = false;  // if the code segment was entirely on
@@ -136,17 +141,12 @@ AddrSpace::AddrSpace(AddrSpace* padre){
     unsigned int paginasPila = padre->numPages - (UserStackSize/PageSize); //asigna el numero de paginas de la pila
     for (i = 0; i < padre->numPages; i++) {
         DEBUG('a', "Entra al primer for \n ");
- #ifdef VM
-      pageTable[i].valid = false;
-      pageTable[i].physicalPage = -1;
-   #else
      if(i<paginasPila){
 			this->pageTable[i].physicalPage = padre->pageTable[i].physicalPage; 
     	}else{
     	      this->pageTable[i].physicalPage = mapaGlobal.Find();
              pageTable[i].valid = true;
     	}
-   #endif
 		this->pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	 	
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
