@@ -219,6 +219,9 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
+#ifdef VM
+#else
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+#endif
 }
