@@ -432,6 +432,8 @@ void Nachos_SemWait(){//SystemCall 14
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
+    unsigned int dirLogica; //se usa para almacenar la direccion logica de la pagina en la que ocurrio el page fault
+    unsigned int vpn; // se usa para averiguar el numero de pagina virtual en caso de que haya una page fault exception
 /*if((type >= 0) && (type <= 13)){
 	which = SyscallException;
 	}*/
@@ -499,6 +501,8 @@ void ExceptionHandler(ExceptionType which)
           }break;
                case PageFaultException:
                     printf("Excepcion de page fault");   // No valid translation found
+                    dirLogica = machine->ReadRegister(39);
+                    vpn = dirLogica/PageSize;
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
 		     printf("Excepcion de read only");			    // "read-only"
