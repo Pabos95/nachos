@@ -101,9 +101,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	}
 
 	bzero(machine->mainMemory, size);
-
-	// then, copy in the code and data segments into memory
-
+ datosInicializados = divRoundUp(noffH.code.size, PageSize);
+ datosNoInicializados = datosInicializados + divRoundUp(noffH.initData.size, PageSize);
+ pila = numPages - divRoundUp(UserStackSize,PageSize);
+#ifndef VM
 	int direccionMemoriaCodigo = noffH.code.inFileAddr;
 	int direccionMemoriaDatos = noffH.initData.inFileAddr;
 	int numPaginasCodigo = divRoundUp(noffH.code.size, numPages);
@@ -125,7 +126,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		}
 	}
 
-    DEBUG('u',"Termina el constructor de Addrspace ");
+DEBUG('u',"Termina el constructor de Addrspace ");
+#endif 
 }
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace(AddrSpace* padre)
@@ -207,7 +209,19 @@ AddrSpace::InitRegisters()
 //----------------------------------------------------------------------
 
 void AddrSpace::SaveState() 
-{}
+{
+#ifdef VM
+for(int i = 0; i < TLBSize; ++i){
+		pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
+		pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
+	}
+	machine->tlb = new TranslationEntry[ TLBSize ];
+	for (int i = 0; i < TLBSize; ++i)
+	{
+		machine->tlb[i].valid = false;
+}
+#endif 
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
@@ -219,9 +233,14 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState() 
 {
-#ifdef VM
-#else
+#ifndef VM
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+#else
+machine->tlb = new TranslationEntry[TLBSize];
+for (int i = 0; i < TLBSize; ++i)
+	{
+		machine->tlb[i].valid = false;
+}
 #endif
 }

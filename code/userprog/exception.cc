@@ -500,9 +500,11 @@ void ExceptionHandler(ExceptionType which)
                 break;
           }break;
                case PageFaultException:
-                    printf("Excepcion de page fault");   // No valid translation found
+                    printf("Excepcion de page fault \n");   // No valid translation found
                     dirLogica = machine->ReadRegister(39);
                     vpn = dirLogica/PageSize;
+                    printf("Ocurre en la direccion: %d \n", dirLogica);
+                    printf(" En la pagina : %d \n", vpn);
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
 		     printf("Excepcion de read only");			    // "read-only"
