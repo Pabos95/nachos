@@ -505,6 +505,7 @@ void ExceptionHandler(ExceptionType which)
                     vpn = dirLogica/PageSize;
                     printf("Ocurre en la direccion: %d \n", dirLogica);
                     printf(" En la pagina : %d \n", vpn);
+                    currentThread->space->Load(vpn);
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
 		     printf("Excepcion de read only");			    // "read-only"

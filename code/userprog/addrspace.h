@@ -28,7 +28,7 @@ class AddrSpace {
 
     void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
-    void load(unsigned int vpn);
+    void Load(unsigned int vpn);
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
     unsigned int datosInicializados;

@@ -244,3 +244,5 @@ for (int i = 0; i < TLBSize; ++i)
 }
 #endif
 }
+void AddrSpace::Load(unsigned int vpn){
+}
