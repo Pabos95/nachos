@@ -245,4 +245,11 @@ for (int i = 0; i < TLBSize; ++i)
 #endif
 }
 void AddrSpace::Load(unsigned int vpn){
+//se guarda la página en la page table
+machine->tlb[indTLB].virtualPage = pageTable[indPagT].virtualPage;
+			machine->tlb[indTLB].physicalPage = pageTable[indPagT].physicalPage;
+			machine->tlb[indTLB].valid = pageTable[indPagT].valid;
+			machine->tlb[indTLB].use = pageTable[indPagT].use;
+			machine->tlb[indTLB].dirty = pageTable[indPagT].dirty;
+machine->tlb[indTLB].readOnly = pageTable[indPagT].readOnly;
 }
