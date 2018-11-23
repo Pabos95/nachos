@@ -104,7 +104,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
  datosInicializados = divRoundUp(noffH.code.size, PageSize);
  datosNoInicializados = datosInicializados + divRoundUp(noffH.initData.size, PageSize);
  pila = numPages - divRoundUp(UserStackSize,PageSize);
-#ifndef VM
+//#ifndef VM
 	int direccionMemoriaCodigo = noffH.code.inFileAddr;
 	int direccionMemoriaDatos = noffH.initData.inFileAddr;
 	int numPaginasCodigo = divRoundUp(noffH.code.size, PageSize);
@@ -127,7 +127,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	}
 
 DEBUG('u',"Termina el constructor de Addrspace ");
-#endif 
+//#endif 
 }
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace(AddrSpace* padre)
@@ -249,6 +249,12 @@ void AddrSpace::Load(unsigned int vpn){
 for(int i = 0; i < 4; i++){
 pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
+}
+OpenFile *exec = fileSystem->Open(ejecutable);
+int numPaginasCodigo = divRoundUp(noffH1.code.size, PageSize);
+int numPaginasDatos = divRoundUp(noffH1.initData.size, PageSize);
+//si la página a cargar es de código
+if(vpn < numPaginasCodigo){
 }
 //se guarda la página en la page table
 machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;

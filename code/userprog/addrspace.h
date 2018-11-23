@@ -35,10 +35,13 @@ class AddrSpace {
     unsigned int datosNoInicializados;
     unsigned int pila;
   private:
-    TranslationEntry *pageTable;	// Assume linear page table translation
-					// for now!
+    TranslationEntry *pageTable;	// Assume linear page table translation  
+			// for now!
     unsigned int numPages;		// Number of pages in the virtual 
-					// address space
+   				// address space
+    char* ejecutable[128]; //se usa para cuando se carga una pagina
+    NoffHeader noffH1;
+    OpenFile* Swap = NULL;
 };
 
 #endif // ADDRSPACE_H
