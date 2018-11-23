@@ -60,7 +60,7 @@ SwapHeader (NoffHeader *noffH)
 AddrSpace::AddrSpace(OpenFile *executable)
 {
     NoffHeader noffH;
-    unsigned int i, size;
+    unsigned int j, size;
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
@@ -84,18 +84,18 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	numPages, size);
 	// first, set up the translation
 	pageTable = new TranslationEntry[numPages];
-	for (i = 0; i < numPages; i++) {
-		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+	for (j = 0; j < numPages; j++) {
+		pageTable[j].virtualPage = j;	// for now, virtual page # = phys page #
 #ifdef VM
-      pageTable[i].valid = false;
-      pageTable[i].physicalPage = -1;
+      pageTable[j].valid = false;
+      pageTable[j].physicalPage = -1;
 #else
-		pageTable[i].physicalPage = mapaGlobal.Find();
-		pageTable[i].valid = true;
+		pageTable[j].physicalPage = mapaGlobal.Find();
+		pageTable[j].valid = true;
 #endif
-		pageTable[i].use = false;
-		pageTable[i].dirty = false;
-		pageTable[i].readOnly = false;  // if the code segment was entirely on
+		pageTable[j].use = false;
+		pageTable[j].dirty = false;
+		pageTable[j].readOnly = false;  // if the code segment was entirely on
 		// a separate page, we could set its
 		// pages to be read-only
 	}
@@ -107,8 +107,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 #ifndef VM
 	int direccionMemoriaCodigo = noffH.code.inFileAddr;
 	int direccionMemoriaDatos = noffH.initData.inFileAddr;
-	int numPaginasCodigo = divRoundUp(noffH.code.size, numPages);
-	int numPaginasDatos = divRoundUp(noffH.initData.size, numPages);
+	int numPaginasCodigo = divRoundUp(noffH.code.size, PageSize);
+	int numPaginasDatos = divRoundUp(noffH.initData.size, PageSize);
 
 	for (int i = 0; i < numPaginasCodigo; i++) //llena el segmento de codigo
 	{
@@ -244,12 +244,17 @@ for (int i = 0; i < TLBSize; ++i)
 }
 #endif
 }
+int it = 0;
 void AddrSpace::Load(unsigned int vpn){
+for(int i = 0; i < 4; i++){
+pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
+pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
+}
 //se guarda la página en la page table
-machine->tlb[indTLB].virtualPage = pageTable[vpn].virtualPage;
-			machine->tlb[vpn].physicalPage = pageTable[vpn].physicalPage;
-			machine->tlb[vpn].valid = pageTable[vpn].valid;
-			machine->tlb[vpn].use = pageTable[vpn].use;
-			machine->tlb[vpn].dirty = pageTable[vpn].dirty;
-machine->tlb[vpn].readOnly = pageTable[vpn].readOnly;
+machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
+			machine->tlb[vpn].physicalPage = pageTable[it].physicalPage;
+			machine->tlb[it].valid = pageTable[vpn].valid;
+			machine->tlb[it].use = pageTable[vpn].use;
+			machine->tlb[it].dirty = pageTable[vpn].dirty;
+machine->tlb[it].readOnly = pageTable[vpn].readOnly;
 }
