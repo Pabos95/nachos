@@ -20,7 +20,7 @@
 
 class AddrSpace {
   public:
-    AddrSpace(OpenFile *executable);	// Create an address space,
+    AddrSpace(OpenFile *executable, const char* filename="");	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
     AddrSpace(AddrSpace* padre);
@@ -31,6 +31,7 @@ class AddrSpace {
     void Load(unsigned int vpn);
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
+    const char* fn; //Nombre del archivo ejecutable
     unsigned int datosInicializados;
     unsigned int datosNoInicializados;
     unsigned int pila;
@@ -39,7 +40,6 @@ class AddrSpace {
 			// for now!
     unsigned int numPages;		// Number of pages in the virtual 
    				// address space
-    char* ejecutable[128]; //se usa para cuando se carga una pagina
     NoffHeader noff;
     OpenFile* Swap = NULL;
 };

@@ -56,7 +56,7 @@ SwapHeader (NoffHeader *noffH)
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(OpenFile *executable)
+AddrSpace::AddrSpace(OpenFile *executable, const char* filename)
 {
     NoffHeader noffH;
     unsigned int j, size;
@@ -65,7 +65,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
-
+#ifdef vm
+strcopy(fn);
+#endif
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
 			+ UserStackSize;	// we need to increase the size
@@ -124,9 +126,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			direccionMemoriaDatos+=128;
 		}
 	}
-
-DEBUG('u',"Termina el constructor de Addrspace ");
 //#endif 
+DEBUG('u',"Termina el constructor de Addrspace ");
 }
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace(AddrSpace* padre)
@@ -244,23 +245,33 @@ for (int i = 0; i < TLBSize; ++i)
 }
 #endif
 }
-bool AddrsSpace::PaginaEnArchivo(int page){
+bool AddrSpace::PaginaEnArchivo(int page){
 
 }
 int it = 0;
 void AddrSpace::Load(unsigned int vpn){
+DEBUG('a', "Numero de paginas: %d, Nombre del hilo actual: %s\n", numPages, currentThread->getName());
+	DEBUG('a', "\tEl segmento de còdigo va de %d a %d \n",0, datosInicializados);
+	DEBUG('a',"\t El segemento de datos incializados va de %d a  %d \n", datosInicializados, datosNoInicializados);
+	DEBUG('a', "\t El segmento de datos no incializados va de %d a %d \n", datosNoInicializados , pila);
+DEBUG('a',"\t El segmento de pila va de %d a  %d \n", pila, numPages );
 for(int i = 0; i < 4; i++){
 pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
 }
-OpenFile *exec = fileSystem->Open(ejecutable);
+OpenFile *exec = fileSystem->Open(fn);
 int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
 int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
 if(vpn < numPaginasCodigo){
 /* Caso1
 si la página a cargar es de código Y NO es Valida Ni Sucia
 */
-if(pageTable[vpn].valid == false && (pageTable[vpn].valid == false)){
+if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
+}
+/* Caso2
+si la página a cargar es de código Y No es valida y es sucia
+*/
+if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
 }
 }
 //se guarda la página en la page table

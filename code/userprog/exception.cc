@@ -317,7 +317,7 @@ AddrSpace *sspace;
 DEBUG('j', "ExecThread: %s\n",fileName );
 
 //Y lo ejecutamos
-sspace = new AddrSpace(executable);
+sspace = new AddrSpace(executable, fileName);
 sspace->InitRegisters(); //Registros iniciales
 newThread->space = sspace;
 newThread->SaveUserState(); //Guardamos estado
@@ -505,6 +505,7 @@ void ExceptionHandler(ExceptionType which)
                     vpn = dirLogica/PageSize;
                     printf("Ocurre en la direccion: %d \n", dirLogica);
                     printf(" En la pagina : %d \n", vpn);
+
                     currentThread->space->Load(vpn);
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
