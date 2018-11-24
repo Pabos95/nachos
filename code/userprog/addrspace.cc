@@ -17,7 +17,6 @@
 #include "copyright.h"
 #include "system.h"
 #include "addrspace.h"
-#include "noff.h"
 #include <iostream>
 using namespace std;
 //----------------------------------------------------------------------
@@ -211,6 +210,7 @@ AddrSpace::InitRegisters()
 void AddrSpace::SaveState() 
 {
 #ifdef VM
+DEBUG('t', "Se guarda el estado del hilo: %s\n", currentThread->getName());
 for(int i = 0; i < TLBSize; ++i){
 		pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
 		pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
@@ -244,6 +244,9 @@ for (int i = 0; i < TLBSize; ++i)
 }
 #endif
 }
+bool AddrsSpace::PaginaEnArchivo(int page){
+
+}
 int it = 0;
 void AddrSpace::Load(unsigned int vpn){
 for(int i = 0; i < 4; i++){
@@ -251,10 +254,14 @@ pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
 }
 OpenFile *exec = fileSystem->Open(ejecutable);
-int numPaginasCodigo = divRoundUp(noffH1.code.size, PageSize);
-int numPaginasDatos = divRoundUp(noffH1.initData.size, PageSize);
-//si la página a cargar es de código
+int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
+int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
 if(vpn < numPaginasCodigo){
+/* Caso1
+si la página a cargar es de código Y NO es Valida Ni Sucia
+*/
+if(pageTable[vpn].valid == false && (pageTable[vpn].valid == false)){
+}
 }
 //se guarda la página en la page table
 machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;

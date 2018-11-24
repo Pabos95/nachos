@@ -15,7 +15,7 @@
 
 #include "copyright.h"
 #include "filesys.h"
-
+#include "noff.h"
 #define UserStackSize		1024 	// increase this as necessary!
 
 class AddrSpace {
@@ -25,7 +25,7 @@ class AddrSpace {
 					// stored in the file "executable"
     AddrSpace(AddrSpace* padre);
     ~AddrSpace();			// De-allocate an address space
-
+    bool PaginaEnArchivo(int page);   //Se encarga de ver si una pagina de memoria se encuentra en el archivo
     void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
     void Load(unsigned int vpn);
@@ -40,7 +40,7 @@ class AddrSpace {
     unsigned int numPages;		// Number of pages in the virtual 
    				// address space
     char* ejecutable[128]; //se usa para cuando se carga una pagina
-    NoffHeader noffH1;
+    NoffHeader noff;
     OpenFile* Swap = NULL;
 };
 
