@@ -9,15 +9,15 @@ main()
     int n = 0;
 
 
-    // Create( "nachos.2" );
+    Create( "nachos.3" );
     input  = Open( "nachos.1" );
-   /* output = Open( "nachos.2" );
+    output = Open( "nachos.2" );
     while( (n = Read( buffer, 1024, input ) ) > 0 ) {
 	Write( buffer, n, output);
     }
     Close( input );
     Close( output );
 
-    Exit( 0 ); */
+    Exit( 0 ); 
 }
 

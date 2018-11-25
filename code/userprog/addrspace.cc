@@ -66,7 +66,7 @@ AddrSpace::AddrSpace(OpenFile *executable, const char* filename)
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 #ifdef vm
-strcopy(fn);
+std::string str(filename);
 #endif
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
@@ -259,15 +259,30 @@ for(int i = 0; i < 4; i++){
 pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
 }
-OpenFile *exec = fileSystem->Open(fn);
+OpenFile *exec = fileSystem->Open(fn.c_str());
 int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
 int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
+int libre; //aqui se guarda una direccion de memoria que este  libre
 if(vpn < numPaginasCodigo){
 /* Caso1
 si la página a cargar es de código Y NO es Valida Ni Sucia
 */
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
-OpenFile* Executable = fileSystem->Open(fn); 
+//busca espacio libre en la memoria para esta pagina
+libre = mapaGlobal.Find();
+if (libre != -1  ){ //si se encontro espacio en memoria
+				DEBUG('v',"\tSe ha econtrado espacio libre en: %d\n", libre );
+				pageTable[vpn].physicalPage = libre; //se asigna una pagina fisica
+				exec->ReadAt(&(machine->mainMemory[ ( libre * PageSize ) ] ),
+				PageSize, noff.code.inFileAddr + PageSize*vpn );
+				pageTable[vpn].valid = true;
+				//pageTable[ vpn ].readOnly = true;
+
+				//Se debe actualizar la TLB invertida
+				//Se debe actualizar el TLB
+
+
+}
 }
 /* Caso2
 si la página a cargar es de código Y No es valida y es sucia

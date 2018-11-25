@@ -264,6 +264,7 @@ void Nachos_Read(){
 }
 
 void Nachos_Create(){
+DEBUG('a', "Entra a create");
       //Leemos el puntero al búfer y el tamaño
       int bufOffset = machine -> ReadRegister(4);
       int size = machine -> ReadRegister(5);

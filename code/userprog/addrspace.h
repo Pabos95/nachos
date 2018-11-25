@@ -16,6 +16,7 @@
 #include "copyright.h"
 #include "filesys.h"
 #include "noff.h"
+#include <string>
 #define UserStackSize		1024 	// increase this as necessary!
 
 class AddrSpace {
@@ -31,7 +32,8 @@ class AddrSpace {
     void Load(unsigned int vpn);
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
-    const char* fn; //Nombre del archivo ejecutable
+    int  BuscarTLBSecondChance(); //intenta buscar espacio en la TLB mediante el algoritmo de second chance
+    std::string fn; //Nombre del archivo ejecutable
     unsigned int datosInicializados;
     unsigned int datosNoInicializados;
     unsigned int pila;
