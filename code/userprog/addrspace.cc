@@ -298,3 +298,12 @@ machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
 			machine->tlb[it].dirty = pageTable[vpn].dirty;
 machine->tlb[it].readOnly = pageTable[vpn].readOnly;
 }
+//Busca un lugar en la TLB por medio del algoritmo second chance
+int AddrSpace::BuscarTLBSecondChance(){
+int espacioLibre = -1;
+for (int i = 0; i < TLBSize; i++){
+if(machine->tlb[i].valid == false){ //si es falso se detiene aqui
+return i;
+}
+}
+}
