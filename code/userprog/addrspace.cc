@@ -267,6 +267,7 @@ if(vpn < numPaginasCodigo){
 si la página a cargar es de código Y NO es Valida Ni Sucia
 */
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
+OpenFile* Executable = fileSystem->Open(fn); 
 }
 /* Caso2
 si la página a cargar es de código Y No es valida y es sucia

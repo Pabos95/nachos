@@ -291,7 +291,28 @@ void Nachos_Create(){
 
 
 }
+void NachosExecThread( void* id)
+{
+  SemJoin* info = matrizSemJoin[(long)id];
 
+  OpenFile *executable = fileSystem->Open(info->nombreArchivo);
+  AddrSpace *space;
+
+  if (executable == NULL) {
+    printf("Unable to open file %s\n",info->nombreArchivo);
+    return;
+  }
+  space = new AddrSpace( executable );
+  delete currentThread->space; // i dont need may space anymore
+  currentThread->space = space;
+
+  delete executable;			        // close file
+  space->InitRegisters();		// set the initial register values
+  space->RestoreState();		// load page table register
+  machine->Run();			// jump to the user progam
+  printf("\t\t\t\t\tError\n");
+  ASSERT(false);			// machine->Run never returns;
+}
 void Nachos_Exec(){
   //2
 DEBUG('j', "Enter Exec\n" );
@@ -505,8 +526,7 @@ void ExceptionHandler(ExceptionType which)
                     vpn = dirLogica/PageSize;
                     printf("Ocurre en la direccion: %d \n", dirLogica);
                     printf(" En la pagina : %d \n", vpn);
-
-                    currentThread->space->Load(vpn);
+                  currentThread->space->Load(vpn);
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
 		     printf("Excepcion de read only");			    // "read-only"
