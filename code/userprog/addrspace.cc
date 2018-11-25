@@ -238,6 +238,10 @@ void AddrSpace::RestoreState()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 #else
+//se devuelven los indices de second chance
+indexTLBFIFO = 0;
+indexTLBSndChc = 0;
+//se hace una nueva TLB
 machine->tlb = new TranslationEntry[TLBSize];
 for (int i = 0; i < TLBSize; ++i)
 	{
@@ -287,7 +291,7 @@ if (libre != -1  ){ //si se encontro espacio en memoria
 /* Caso2
 si la página a cargar es de código Y No es valida y es sucia
 */
-if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
+if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == true)){
 }
 }
 //se guarda la página en la page table
@@ -302,8 +306,23 @@ machine->tlb[it].readOnly = pageTable[vpn].readOnly;
 int AddrSpace::BuscarTLBSecondChance(){
 int espacioLibre = -1;
 for (int i = 0; i < TLBSize; i++){
-if(machine->tlb[i].valid == false){ //si es falso se detiene aqui
+if(machine->tlb[i].valid == false){ //si no es valido se detiene aqui
 return i;
 }
+}
+// si itero toda la TLB y no encontro ninguna pagina no valida busca cual reemplezar
+bool encontrado = false;
+while(encontrado == false){
+if ( machine->tlb[ indexTLBSndChc ].use == true )
+		{
+			machine->tlb[ indexTLBSndChc ].use = false;
+			salvarVictimaTLB( indexTLBSndChc, true );
+		}else
+		{
+			encontrado = true;
+			espacioLibre = indexTLBSndChc;
+			salvarVictimaTLB( espacioLibre, false );
+		}
+		indexTLBSndChc = (indexTLBSndChc+1) % TLBSize;
 }
 }

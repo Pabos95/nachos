@@ -27,7 +27,8 @@ extern Scheduler *scheduler;			// the ready list
 extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
-
+extern int indexTLBSndChc;  //variable global para guardar el indice de la TLB en la que se encuentra el second chance
+extern int indexSWAPSndChc;//variable global para guardar el indice del swap en la que se encuentra el second chance
 #ifdef USER_PROGRAM
 extern BitMap mapaGlobal;		//Mapa de bits global para saber cuáles páginas están ocupadas en la memoria fisica
 extern Machine* machine;	// user program memory and registers

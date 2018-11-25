@@ -33,6 +33,7 @@ class AddrSpace {
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
     int  BuscarTLBSecondChance(); //intenta buscar espacio en la TLB mediante el algoritmo de second chance
+    void salvarVictimaTLB( int indiceTLB, bool uso );
     std::string fn; //Nombre del archivo ejecutable
     unsigned int datosInicializados;
     unsigned int datosNoInicializados;

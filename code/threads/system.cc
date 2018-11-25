@@ -93,7 +93,9 @@ Initialize(int argc, char **argv)
 // 2007, Jose Miguel Santos Espino
     bool preemptiveScheduling = false;
     long long timeSlice;
-    
+//inicializa los indices de second chance en 0
+    indexTLBSndChc = 0;
+    indexSWAPSndChc = 0;
 #ifdef USER_PROGRAM
     bool debugUserProg = false;	// single step user program
 #endif
