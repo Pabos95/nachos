@@ -31,8 +31,8 @@ LDFLAGS =
 # These definitions may change as the software is updated.
 # Some of them are also system dependent
 CPP=/lib/cpp
-CC = g++
-LD = g++
+CC = g++ -std=c++14
+LD = g++ -std=c++14
 AS = as
 
 PROGRAM = nachos

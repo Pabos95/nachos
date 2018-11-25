@@ -20,7 +20,7 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
-
+#include <string>
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
@@ -50,6 +50,7 @@
 //	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
+using namespace std;
 NachosSemTable* tablaSemaforos = new NachosSemTable(); //tabla de semaforos de nachos
 Semaphore*  Console = new Semaphore("Sem", 1); //inicializa un semaforo
         void returnFromSystemCall() {
@@ -78,7 +79,7 @@ void Nachos_Exit() { //System call 1
 }
 struct SemJoin{ //struct que guarda un semaforo que sera usado para join, asi como la id y el nombre del archivo ejectubal
    Semaphore* sem; //semaforo del join
-   char* nombreArchivo;
+    string nombreArchivo;
    long threadId;
 };
 BitMap* mapaEjecutables = new BitMap(128); //mapa de bits para los archivos ejecutables
@@ -295,7 +296,7 @@ void NachosExecThread( void* id)
 {
   SemJoin* info = matrizSemJoin[(long)id];
 
-  OpenFile *executable = fileSystem->Open(info->nombreArchivo);
+  OpenFile *executable = fileSystem->Open(info->nombreArchivo.c_str());
   AddrSpace *space;
 
   if (executable == NULL) {
@@ -317,49 +318,40 @@ void Nachos_Exec(){
   //2
 DEBUG('j', "Enter Exec\n" );
 
-//Leelmos el nombre del archivo a ejecutar
-int size = machine -> ReadRegister(5);
-char fileName[size + 1]={0};
-int bufOffset = machine->ReadRegister(4);
-for( int i = 0; i < size; i++ ){
-machine->ReadMem( bufOffset + i, 1, (int*)(&fileName[i]) );
-if( fileName[i] == '\0' )
-  break;
+//Leemos el nombre del archivo a ejecutar
+DEBUG( 't', "Entering EXEC System call\n" );
+
+  long registro4 = machine->ReadRegister( 4 ); // read from register 4
+  char fileName[256] = {0}; // nombre del archivo a ejecutar
+  int c, i; // contadores
+  i = 0;
+  do{
+    machine->ReadMem( registro4 , 1 , &c ); // read from nachos mem
+    registro4++;
+    fileName[i++] = c;
+}while (c != 0 );
+string s = fileName;
+DEBUG( 't', "Se ejecutara el archivo %s\n", fileName);
+//OpenFile *executable = fileSystem->Open(fileName);
+  SemJoin* nuevo = new SemJoin();
+  // We need to create a new kernel thread to execute the user thread
+  Thread * newT = new Thread( "HILO EXEC" );
+  long fileToExec = mapaEjecutables->Find();
+  if(fileToExec == -1){
+    machine->WriteRegister(2, fileToExec );
+printf("Unable to open file %s\n", fileName);    
+return;
 }
+//Abrimos dicho archivo desde Nachso exec thread
+nuevo->threadId = (long) newT;
+  nuevo->nombreArchivo = s;
+  matrizSemJoin[fileToExec] = nuevo;
 
-//Abrimos dicho archivo
-OpenFile *executable = fileSystem->Open(fileName);
+  newT->Fork( NachosExecThread, (void*) fileToExec ); 
+  machine->WriteRegister(2, fileToExec );
+  returnFromSystemCall();	// Se actualizan los registros
 
-if( executable != NULL ){
-
-//Si lo podemos ejecutar entonces creamos un thread y un addrespace para él
-Thread* newThread = new Thread(fileName);
-AddrSpace *sspace;
-DEBUG('j', "ExecThread: %s\n",fileName );
-
-//Y lo ejecutamos
-sspace = new AddrSpace(executable, fileName);
-sspace->InitRegisters(); //Registros iniciales
-newThread->space = sspace;
-newThread->SaveUserState(); //Guardamos estado
-
-currentThread -> Yield();
-
-
-
-delete executable;//Cerramos el archivo
-}
-else{
-printf("Unable to open file %s\n", fileName);
-}
-
-
-machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg)+4);
-
-
-
+DEBUG( 't', "Exiting EXEC System call\n" );
 }
 
 
