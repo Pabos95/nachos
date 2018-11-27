@@ -51,6 +51,13 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 using namespace std;
+struct SemJoin{ //struct que guarda un semaforo que sera usado para join, asi como la id y el nombre del archivo ejectubal
+   Semaphore* sem; //semaforo del join
+    string nombreArchivo;
+   long threadId;
+};
+SemJoin** archivosEjecutables = new SemJoin*[128]; //aqui se guarda los nombre de los archivos ejecutables con su semaforo
+BitMap* mapaEjecutables = new BitMap(128);  //mapa de bits para los archivos ejecutables
 NachosSemTable* tablaSemaforos = new NachosSemTable(); //tabla de semaforos de nachos
 Semaphore*  Console = new Semaphore("Sem", 1); //inicializa un semaforo
         void returnFromSystemCall() {
@@ -73,32 +80,53 @@ void Nachos_Halt() {                    // System call 0
 
 }       // Nachos_Halt
 void Nachos_Exit() { //System call 1
-    int status = machine->ReadRegister(4);
-    currentThread->tablaArchivos->delThread();
+  int valorSalida = machine->ReadRegister(4);
+  printf("Exit value: %d\n", valorSalida  );
+  Thread* nextThread;
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  DEBUG('t', "Terminando hilo \"%s\"\n", currentThread->getName());
+  for(int ind = 0; ind < 128; ++ind){
+    if(mapaEjecutables->Test(ind)){
+      if((long)currentThread == archivosEjecutables[ind]->threadId){
+        if(archivosEjecutables[ind]->sem != NULL){
+
+          archivosEjecutables[ind]->sem->V();
+        }
+        else{
+          delete archivosEjecutables[ind];
+          mapaEjecutables->Clear(ind);
+        }
+      }
+    }
+  }
+
+  machine->WriteRegister(2, machine->ReadRegister(4));
+
+  nextThread = scheduler->FindNextToRun();
+  if (nextThread != NULL) {
+    scheduler->Run(nextThread);
+  }else
+  {
     currentThread->Finish();
+  }
+  interrupt->SetLevel(oldLevel);
 }
-struct SemJoin{ //struct que guarda un semaforo que sera usado para join, asi como la id y el nombre del archivo ejectubal
-   Semaphore* sem; //semaforo del join
-    string nombreArchivo;
-   long threadId;
-};
-BitMap* mapaEjecutables = new BitMap(128); //mapa de bits para los archivos ejecutables
-SemJoin** matrizSemJoin = new SemJoin*[128]; //matriz para los semJoin de los archivos ejecutables
 void Nachos_Join(){ //System call 3
     long spaceId = machine->ReadRegister(4); //lee la id del proceso desde el registro 4
   if (mapaEjecutables->Test(spaceId)) //si se encuentra el ejecutable con ese spaceId
     {
 
         Semaphore* nuevoSemJoin = new Semaphore("semJoin", 0);
-         matrizSemJoin[spaceId]->sem = nuevoSemJoin;
+         archivosEjecutables[spaceId]->sem = nuevoSemJoin;
        nuevoSemJoin->P(); //hace esperar al proceso al que se le hace join
         machine->WriteRegister(2, 0); //avisa que el syscall se efectuo correctamente
-        delete matrizSemJoin[spaceId];
-        mapaEjecutables[spaceId];
+        delete archivosEjecutables[spaceId];
+        mapaEjecutables->Clear(spaceId);
        returnFromSystemCall();
     }
     else{ //No se encontro el ejecutable
         machine->WriteRegister(2, -1); //se  envia un mensaje de error al registro
+printf("Ejecutable no encontrado");
     }
     returnFromSystemCall();
 }
@@ -124,7 +152,7 @@ void Nachos_Open() {                    // System call 5
 	int Open(
 		char *name	// Register 4
 	);
-*/   DEBUG ('a', "Inicia Open\n");
+*/   DEBUG ('s', "Inicia Open\n");
 printf("Entra a open");
     char name[128];
     int dir =  machine->ReadRegister(4); //lee el registro pues en ese es el que está la dirección del archivo a leer
@@ -143,6 +171,7 @@ printf("Entra a open");
     int idArchivo = open( name, O_RDWR);//0_RDWR); //La id real  (en Unix)
     if(idArchivo != CODIGOERROR){
         idFalsa = currentThread->tablaArchivos->Open(idArchivo); //La id en Nachos
+DEBUG ('s', "Archivo abierto s\n");
         machine->WriteRegister(2, idFalsa);
     }
     else{
@@ -150,7 +179,7 @@ printf("Entra a open");
 		machine->WriteRegister (RSYSTEMCALL, CODIGOERROR);
     }
         returnFromSystemCall();		// Update the PC registers
-DEBUG ('a', "Termina Open.\n");
+DEBUG ('s', "Termina Open.\n");
 }       // Nachos_Open
 
 void Nachos_Write() {                   // System call 7
@@ -264,38 +293,36 @@ void Nachos_Read(){
 }
 
 void Nachos_Create(){
-DEBUG('a', "Entra a create");
+DEBUG('s', "Entra a create");
       //Leemos el puntero al búfer y el tamaño
       int bufOffset = machine -> ReadRegister(4);
-      int size = machine -> ReadRegister(5);
-  	  char fileName[size + 1] = {0};
-
+  	  char fileName[256] = {0};
+       int c;
+int i = 0;
       //Luego leemos el nombre del archivo a crear
-  		for (int i = 0; i < size; ++ i)
-  		{
-  			if (machine -> ReadMem(bufOffset + i, 1, (int *)(&fileName[i])) == false)
-  			{
-  				break;
-  			}
-  			if (fileName[i] == 0)
-  				break;
-  		}
+do{
+    machine->ReadMem( bufOffset , 1 , &c ); // read from nachos mem
+    bufOffset++;
+    fileName[i] = c;
+    ++i;
+  }while (c != 0 ); //si c es quiere decir que ya termino la lectura del nombre
 
-      //Y usamos la función Create para crearlo
+      //Y usamos el SC de unix create para crearlo
   		printf("Creamos archivo == %s.\n", fileName);
-  		int result = (int)fileSystem -> Create(fileName, 128);
-  		DEBUG('a', "[]Creación de archivo: %s", fileName);
+  		int result = creat (fileName, O_CREAT|S_IRWXU );
+  		DEBUG('s', "[]Creación de archivo: %s", fileName);
 
-  		machine -> WriteRegister(2, result);
-  		machine -> WriteRegister(PrevPCReg, machine -> ReadRegister(PCReg));
-  		machine -> WriteRegister(PCReg, machine -> ReadRegister(NextPCReg));
-  		machine -> WriteRegister(NextPCReg, machine -> ReadRegister(PCReg) + 4);
+  if (result == -1 ) //si no sirve el creat
+  {
+    printf("No se pudo crear el archivo");
 
-
+  }		
+close(result);
+returnFromSystemCall();
 }
 void NachosExecThread( void* id)
 {
-  SemJoin* info = matrizSemJoin[(long)id];
+  SemJoin* info = archivosEjecutables[(long)id];
 
   OpenFile *executable = fileSystem->Open(info->nombreArchivo.c_str());
   AddrSpace *space;
@@ -346,7 +373,7 @@ return;
 //Abrimos dicho archivo desde Nachso exec thread
 nuevo->threadId = (long) newT;
   nuevo->nombreArchivo = s;
-  matrizSemJoin[fileToExec] = nuevo;
+  archivosEjecutables[fileToExec] = nuevo;
 
   newT->Fork( NachosExecThread, (void*) fileToExec ); 
   machine->WriteRegister(2, fileToExec );

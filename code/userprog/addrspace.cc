@@ -134,27 +134,26 @@ DEBUG('u',"Termina el constructor de Addrspace ");
 // 	Construye
 //----------------------------------------------------------------------
 AddrSpace::AddrSpace(AddrSpace* padre){
-     DEBUG('a', "entra al constructor de addrspace hijos \n");
-   this->pageTable = new TranslationEntry[padre->numPages];
-   DEBUG('a', "inicializa el page Table \n ");
-    //inicializa codigo y variables
-    unsigned int i;
-    this->numPages = padre->numPages;
-    unsigned int paginasPila = padre->numPages - (UserStackSize/PageSize); //asigna el numero de paginas de la pila
-    for (i = 0; i < padre->numPages; i++) {
-        DEBUG('a', "Entra al primer for \n ");
-     if(i<paginasPila){
-			this->pageTable[i].physicalPage = padre->pageTable[i].physicalPage; 
-    	}else{
-    	      this->pageTable[i].physicalPage = mapaGlobal.Find();
-             pageTable[i].valid = true;
-    	}
-		this->pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	 	
+  numPages = padre->numPages;
+	pageTable = new TranslationEntry[padre->numPages];
+	for(int i = 0; i < padre->numPages-8; i++){
+		pageTable[i].virtualPage = padre->pageTable[i].virtualPage;	// for now, virtual page # = phys page #
+		pageTable[i].physicalPage = padre->pageTable[i].physicalPage;
+		pageTable[i].valid = padre->pageTable[i].valid;
+		pageTable[i].use = padre->pageTable[i].use;
+		pageTable[i].dirty = padre->pageTable[i].dirty;
+		pageTable[i].readOnly = padre->pageTable[i].readOnly;
+	}
+
+	for(int i = padre->numPages-8; i < padre->numPages; i++){
+		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		pageTable[i].physicalPage = mapaGlobal.Find();
+		pageTable[i].valid = true;
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
-		pageTable[i].readOnly = false;  
+		pageTable[i].readOnly = false;
+
 }
-  DEBUG('a', "sale del constructor de addrspace hijos \n");  
 }
 
 
@@ -239,7 +238,7 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
 #else
 //se devuelven los indices de second chance
-indexTLBFIFO = 0;
+indexSWAPSndChc = 0;
 indexTLBSndChc = 0;
 //se hace una nueva TLB
 machine->tlb = new TranslationEntry[TLBSize];
@@ -248,6 +247,58 @@ for (int i = 0; i < TLBSize; ++i)
 		machine->tlb[i].valid = false;
 }
 #endif
+}
+void AddrSpace::useIndiceTLB( int indiceTLB, int vpn )
+{
+	if ( tlbIndex < 0 || tlbIndex >= TLBSize  )
+	{
+		DEBUG('v',"\n Error indice de TLB invalido ");
+		ASSERT(false);
+	}
+	if ( vpn < 0 || (unsigned int) vpn >= numPages  )
+	{
+		DEBUG('v',"\n Error :vpn invalido %d\n",vpn);
+		ASSERT(false);
+	}
+	machine->tlb[indiceTLB].virtualPage =  pageTable[vpn].virtualPage;
+	machine->tlb[indiceTLB].physicalPage = pageTable[vpn].physicalPage;
+	machine->tlb[indiceTLB].valid = pageTable[vpn].valid;
+	machine->tlb[indiceTLB].use = pageTable[vpn].use;
+	machine->tlb[indiceTLB].dirty = pageTable[vpn].dirty;
+	machine->tlb[indiceTLB].readOnly = pageTable[vpn].readOnly;
+}
+int  AddrSpace::secondChanceTLB()
+{
+	int libre = -1;
+	for ( int i = 0; i < TLBSize; i++ )
+	{
+//si se encuentra una entrada del tlb invalida entonces lo asigna ahi
+		if ( machine->tlb[ x ].valid == false )
+		{
+			return x;
+		}
+	}
+	bool espacioEncontrado = false;
+	while ( find == false )
+	{
+		if ( machine->tlb[ indexTLBSndChc ].use == true )
+		{
+			machine->tlb[ indexTLBSndChc ].use = false;
+			salvarVictimaTLB( indexTLBSndChc, true );
+		}else
+		{
+			espacioEncontrado = true;
+			libre = indexTLBSndChc;
+			salvarVictimaTLB( libre, false );
+		}
+		indexTLBSndChc = (indexTLBSndChc+1) % TLBSize;
+	}
+	if ( libre < 0 || libre >= TLBSize )
+	{
+		DEBUG('v',"\ngetNextSCTLB: Invalid tlb information\n");
+		ASSERT( false );
+	}
+	return libre;
 }
 bool AddrSpace::PaginaEnArchivo(int page){
 
@@ -273,19 +324,21 @@ si la página a cargar es de código Y NO es Valida Ni Sucia
 */
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
 //busca espacio libre en la memoria para esta pagina
+DEBUG('v', "\tArchivo origen del page fault: %s\n", fn.c_str());
 libre = mapaGlobal.Find();
+++stats->numPageFaults;
 if (libre != -1  ){ //si se encontro espacio en memoria
 				DEBUG('v',"\tSe ha econtrado espacio libre en: %d\n", libre );
 				pageTable[vpn].physicalPage = libre; //se asigna una pagina fisica
-				exec->ReadAt(&(machine->mainMemory[ ( libre * PageSize ) ] ),
+				exec->ReadAt(&(machine->mainMemory[(libre * PageSize)]),
 				PageSize, noff.code.inFileAddr + PageSize*vpn );
-				pageTable[vpn].valid = true;
-				//pageTable[ vpn ].readOnly = true;
+				pageTable[vpn].valid = true; //se marca como válida
 
 				//Se debe actualizar la TLB invertida
-				//Se debe actualizar el TLB
-
-
+                                pageTableInvertida[libre] = &(pageTable[ vpn ]);
+				//Luego se debe actualizar el TLB
+                                int espacioTLB = getNextSCTLB();
+                                usarIndiceTLB( espacioTLB, vpn );
 }
 }
 /* Caso2
@@ -301,6 +354,8 @@ machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
 			machine->tlb[it].use = pageTable[vpn].use;
 			machine->tlb[it].dirty = pageTable[vpn].dirty;
 machine->tlb[it].readOnly = pageTable[vpn].readOnly;
+}
+void AddrSpace::salvarVictimaTLB(int indiceTLB, bool uso){
 }
 //Busca un lugar en la TLB por medio del algoritmo second chance
 int AddrSpace::BuscarTLBSecondChance(){

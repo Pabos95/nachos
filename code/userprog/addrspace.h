@@ -32,7 +32,9 @@ class AddrSpace {
     void Load(unsigned int vpn);
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
+    void usarIndiceTLB(int ind, int vpn);
     int  BuscarTLBSecondChance(); //intenta buscar espacio en la TLB mediante el algoritmo de second chance
+    int secondChanceTLB();
     void salvarVictimaTLB( int indiceTLB, bool uso );
     std::string fn; //Nombre del archivo ejecutable
     unsigned int datosInicializados;
