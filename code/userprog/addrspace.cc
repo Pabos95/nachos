@@ -56,7 +56,7 @@ SwapHeader (NoffHeader *noffH)
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(OpenFile *executable, const char* filename)
+AddrSpace::AddrSpace(OpenFile *executable, std::string filename)
 {
     NoffHeader noffH;
     unsigned int j, size;
@@ -65,8 +65,9 @@ AddrSpace::AddrSpace(OpenFile *executable, const char* filename)
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
+DEBUG('a', "Archivo : %s\n", filename);
 #ifdef vm
-std::string str(filename);
+fn = filename;
 #endif
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
@@ -345,6 +346,7 @@ bool AddrSpace::PaginaEnArchivo(int page){
 }
 int it = 0;
 void AddrSpace::Load(unsigned int vpn){
+DEBUG('a', "Archivo de origen : %s\n", fn);
 DEBUG('a', "Numero de paginas: %d, Nombre del hilo actual: %s\n", numPages, currentThread->getName());
 	DEBUG('a', "\tEl segmento de còdigo va de %d a %d \n",0, datosInicializados);
 	DEBUG('a',"\t El segemento de datos incializados va de %d a  %d \n", datosInicializados, datosNoInicializados);
@@ -366,6 +368,7 @@ si la página a cargar es de código Y NO es Valida Ni Sucia
 */
 NoffHeader noffH;
 exec->ReadAt((char *)&noffH, sizeof(noffH), 0);
+DEBUG('a', "Leido el ejecutable");
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
 //busca espacio libre en la memoria para esta pagina
 DEBUG('a', "\tArchivo origen del page fault: %s\n", fn.c_str());
