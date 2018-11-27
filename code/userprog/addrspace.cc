@@ -75,9 +75,9 @@ std::string str(filename);
 	/*std::cout<<"El tamaño del ejecutable es "<<size<<std::endl;*/
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
-
+#ifndef VM
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
-						// to run anything too big --
+#endif						// to run anything too big --
 						// at least until we have
 						// virtual memory
 
@@ -100,8 +100,8 @@ std::string str(filename);
 		// a separate page, we could set its
 		// pages to be read-only
 	}
-
-	bzero(machine->mainMemory, size);
+DEBUG('a', "Creado el page table");
+	//bzero(machine->mainMemory, size);
  datosInicializados = divRoundUp(noffH.code.size, PageSize);
  datosNoInicializados = datosInicializados + divRoundUp(noffH.initData.size, PageSize);
  pila = numPages - divRoundUp(UserStackSize,PageSize);
@@ -127,7 +127,7 @@ std::string str(filename);
 		}
 	}
 //#endif 
-DEBUG('u',"Termina el constructor de Addrspace ");
+DEBUG('a',"Termina el constructor de Addrspace ");
 }
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace(AddrSpace* padre)
@@ -222,7 +222,47 @@ for(int i = 0; i < TLBSize; ++i){
 }
 #endif 
 }
+int AddrSpace::secondChanceSwap(){
+if ( indexSWAPSndChc < 0 || indexSWAPSndChc >= NumPhysPages )
+	{
+		DEBUG('v', "Indice swap %d \n invalido", indexSWAPSndChc );
+		ASSERT( false );
+	}
+	int espacioLibre = -1;
+	bool encontrado = false;
 
+	while ( encontrado == false )
+	{
+		if ( pageTableInvertida[ indexSWAPSndChc ] == NULL )
+		{
+		DEBUG('v', "\Error estado de la pageTableInvertida invalido \n");
+		ASSERT( false );
+		}
+
+		if ( pageTableInvertida[ indexSWAPSndChc ]->valid == false )
+		{
+			DEBUG('v', "\nEntrada invalida de la page table invertida (use es falso)");
+			ASSERT( false );
+		}
+
+		if ( pageTableInvertida[ indexSWAPSndChc ]->use == true )
+		{
+				pageTableInvertida[ indexSWAPSndChc ]->use = false;
+		}else
+		{
+				espacioLibre = indexSWAPSndChc;
+				encontrado = true;
+		}
+		indexSWAPSndChc = (indexSWAPSndChc+1) % NumPhysPages;
+	}
+
+	if (espacioLibre < 0 || espacioLibre >= NumPhysPages )
+	{
+		DEBUG('v',"Informacion de page table invertida invalida \n");
+		ASSERT( false );
+	}
+	return espacioLibre;
+}
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
 // 	On a context switch, restore the machine state so that
@@ -318,14 +358,18 @@ OpenFile *exec = fileSystem->Open(fn.c_str());
 int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
 int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
 int libre; //aqui se guarda una direccion de memoria que este  libre
-if(vpn < numPaginasCodigo){
+//si la pagina a cargar pertenece al segmento de codigo
+if(vpn < numPaginasCodigo & vpn < datosInicializados){
 /* Caso1
 si la página a cargar es de código Y NO es Valida Ni Sucia
 */
+NoffHeader noffH;
+exec->ReadAt((char *)&noffH, sizeof(noffH), 0);
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
 //busca espacio libre en la memoria para esta pagina
 DEBUG('a', "\tArchivo origen del page fault: %s\n", fn.c_str());
 libre = mapaGlobal.Find();
+//actualiza las estadisticas sobre el numero de page faults
 ++stats->numPageFaults;
 if (libre != -1  ){ //si se encontro espacio en memoria
 				DEBUG('a',"\tSe ha econtrado espacio libre en: %d\n", libre );
@@ -339,6 +383,11 @@ if (libre != -1  ){ //si se encontro espacio en memoria
 				//Luego se debe actualizar el TLB
                                 int espacioTLB = secondChanceTLB();
                                 usarIndiceTLB( espacioTLB, vpn );
+}
+//si no se encontro espacio entonces busca una victima swap
+else{
+indexSWAPSndChc = secondChanceTLB();
+
 }
 }
 /* Caso2
@@ -356,6 +405,13 @@ machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
 machine->tlb[it].readOnly = pageTable[vpn].readOnly;
 }
 void AddrSpace::salvarVictimaTLB(int indiceTLB, bool uso){
+if ( indiceTLB < 0 || indiceTLB >= TLBSize  )
+	{
+		DEBUG('v',"\n Error indice %d\n invalido", indiceTLB);
+		ASSERT(false);
+	}
+pageTable[machine->tlb[indiceTLB].virtualPage].use = (uso == 1?uso:machine->tlb[indiceTLB].use);
+pageTable[machine->tlb[indiceTLB].virtualPage].dirty = machine->tlb[indiceTLB].dirty;
 }
 //Busca un lugar en la TLB por medio del algoritmo second chance
 int AddrSpace::BuscarTLBSecondChance(){

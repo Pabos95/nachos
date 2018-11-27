@@ -31,11 +31,14 @@
 const int PageSize = SectorSize; 	// set the page size equal to
 					// the disk sector size, for
 					// simplicity
-
-const int NumPhysPages = 4096; //se aumento el numero de paginas fisicas para que corriera el test pingPong
+#ifndef  VM
+const int NumPhysPages = 32; //se aumento el numero de paginas fisicas para que corriera el test pingPong
+#else
+const int NumPhysPages = 4;
+#endif
 const int MemorySize =  NumPhysPages * PageSize;
 const int TLBSize = 4;			// if there is a TLB, make it small
-
+#define SWAPFILENAME "Swap.txt"
 enum ExceptionType { NoException,           // Everything ok!
 		     SyscallException,      // A program executed a system call.
 		     PageFaultException,    // No valid translation found

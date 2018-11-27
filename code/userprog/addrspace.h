@@ -34,7 +34,9 @@ class AddrSpace {
     void RestoreState();		// info on a context switch 
     void usarIndiceTLB(int ind, int vpn);
     int  BuscarTLBSecondChance(); //intenta buscar espacio en la TLB mediante el algoritmo de second chance
-    int secondChanceTLB();
+    int secondChanceSwap(); //aplica el algoritmo de second chance al archivo de SWAP
+    int secondChanceTLB(); //aplica el algoritmo de second chance a la TLB
+    void buscarVictimaSwap(int indiceSWAP);
     void salvarVictimaTLB( int indiceTLB, bool uso );
     std::string fn; //Nombre del archivo ejecutable
     unsigned int datosInicializados;
