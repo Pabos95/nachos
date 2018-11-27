@@ -100,12 +100,12 @@ std::string str(filename);
 		// a separate page, we could set its
 		// pages to be read-only
 	}
-DEBUG('a', "Creado el page table");
-	//bzero(machine->mainMemory, size);
  datosInicializados = divRoundUp(noffH.code.size, PageSize);
  datosNoInicializados = datosInicializados + divRoundUp(noffH.initData.size, PageSize);
  pila = numPages - divRoundUp(UserStackSize,PageSize);
-//#ifndef VM
+DEBUG('a', "Creado el page table");
+#ifndef VM
+	bzero(machine->mainMemory, size);
 	int direccionMemoriaCodigo = noffH.code.inFileAddr;
 	int direccionMemoriaDatos = noffH.initData.inFileAddr;
 	int numPaginasCodigo = divRoundUp(noffH.code.size, PageSize);
@@ -126,7 +126,7 @@ DEBUG('a', "Creado el page table");
 			direccionMemoriaDatos+=128;
 		}
 	}
-//#endif 
+#endif 
 DEBUG('a',"Termina el constructor de Addrspace ");
 }
 //----------------------------------------------------------------------
@@ -359,7 +359,8 @@ int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
 int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
 int libre; //aqui se guarda una direccion de memoria que este  libre
 //si la pagina a cargar pertenece al segmento de codigo
-if(vpn < numPaginasCodigo & vpn < datosInicializados){
+if((vpn >= 0) && (vpn < datosInicializados)){
+DEBUG('a', "\tLa pagina pertenece al semgneto de codigo");
 /* Caso1
 si la página a cargar es de código Y NO es Valida Ni Sucia
 */

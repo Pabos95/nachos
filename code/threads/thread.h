@@ -54,7 +54,7 @@ const int MachineStateSize = 17;
 
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
-const int StackSize = 4 * 1024;	// in words
+const int StackSize = 4 * 2048;	// in words
 
 
 // Thread state
