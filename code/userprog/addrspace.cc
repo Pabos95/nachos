@@ -248,7 +248,7 @@ for (int i = 0; i < TLBSize; ++i)
 }
 #endif
 }
-void AddrSpace::useIndiceTLB( int indiceTLB, int vpn )
+void AddrSpace::usarIndiceTLB( int indiceTLB, int vpn )
 {
 	if ( tlbIndex < 0 || tlbIndex >= TLBSize  )
 	{
@@ -273,13 +273,13 @@ int  AddrSpace::secondChanceTLB()
 	for ( int i = 0; i < TLBSize; i++ )
 	{
 //si se encuentra una entrada del tlb invalida entonces lo asigna ahi
-		if ( machine->tlb[ x ].valid == false )
+		if ( machine->tlb[i].valid == false )
 		{
-			return x;
+			return i;
 		}
 	}
 	bool espacioEncontrado = false;
-	while ( find == false )
+	while ( espacioEncontrado == false )
 	{
 		if ( machine->tlb[ indexTLBSndChc ].use == true )
 		{
@@ -337,7 +337,7 @@ if (libre != -1  ){ //si se encontro espacio en memoria
 				//Se debe actualizar la TLB invertida
                                 pageTableInvertida[libre] = &(pageTable[ vpn ]);
 				//Luego se debe actualizar el TLB
-                                int espacioTLB = getNextSCTLB();
+                                int espacioTLB = secondChanceTLB();
                                 usarIndiceTLB( espacioTLB, vpn );
 }
 }
