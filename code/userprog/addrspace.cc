@@ -250,7 +250,7 @@ for (int i = 0; i < TLBSize; ++i)
 }
 void AddrSpace::usarIndiceTLB( int indiceTLB, int vpn )
 {
-	if ( tlbIndex < 0 || tlbIndex >= TLBSize  )
+	if ( indiceTLB < 0 || indiceTLB >= TLBSize  )
 	{
 		DEBUG('v',"\n Error indice de TLB invalido ");
 		ASSERT(false);
@@ -324,11 +324,11 @@ si la página a cargar es de código Y NO es Valida Ni Sucia
 */
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
 //busca espacio libre en la memoria para esta pagina
-DEBUG('v', "\tArchivo origen del page fault: %s\n", fn.c_str());
+DEBUG('a', "\tArchivo origen del page fault: %s\n", fn.c_str());
 libre = mapaGlobal.Find();
 ++stats->numPageFaults;
 if (libre != -1  ){ //si se encontro espacio en memoria
-				DEBUG('v',"\tSe ha econtrado espacio libre en: %d\n", libre );
+				DEBUG('a',"\tSe ha econtrado espacio libre en: %d\n", libre );
 				pageTable[vpn].physicalPage = libre; //se asigna una pagina fisica
 				exec->ReadAt(&(machine->mainMemory[(libre * PageSize)]),
 				PageSize, noff.code.inFileAddr + PageSize*vpn );

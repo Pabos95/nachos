@@ -37,6 +37,7 @@ int indexTLBSndChc = 0;  //variable global para guardar el indice de la TLB en l
 int indexSWAPSndChc = 0;
 BitMap mapaGlobal = BitMap(PageSize * NumPhysPages); //bitMap global para saber cuales paginas están ocupadas
 Machine *machine;	// user program memory and registers
+TranslationEntry* pageTableInvertida[NumPhysPages];
 #endif
 
 #ifdef NETWORK
@@ -91,7 +92,10 @@ Initialize(int argc, char **argv)
     const char* debugArgs = "";
     bool randomYield = false;
     mapaGlobal = BitMap(NumPhysPages);
-
+ for (int i = 0; i< NumPhysPages; ++i)
+    {
+      pageTableInvertida[i] = NULL;
+    }
 // 2007, Jose Miguel Santos Espino
     bool preemptiveScheduling = false;
     long long timeSlice;
