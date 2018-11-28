@@ -38,7 +38,7 @@ class AddrSpace {
     int secondChanceTLB(); //aplica el algoritmo de second chance a la TLB
     void buscarVictimaSwap(int indiceSWAP);
     void salvarVictimaTLB( int indiceTLB, bool uso );
- void actualizarVictimaSwap( int indiceSwap );
+ void actualizarVictimaSwap( int indiceSWAP );
     char* fn; //Nombre del archivo ejecutable
    static const int codigo = 0;
     unsigned int datosInicializados;

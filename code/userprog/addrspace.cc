@@ -76,7 +76,7 @@ DEBUG('a', "Tamaño del segmento de codigo %d\n", noffH.code.size);
 DEBUG('a', "Tamaño del segmento de datos inicializados %d\n", noffH.initData.size);
 DEBUG('a', "Tamaño del segmento de datos no inicializados %d\n", noffH.uninitData.size);
 DEBUG('a', "Tamaño del segmento de datos inicializados %d\n", UserStackSize);
-DEBUG('a', "Tamaño del  la pagina  %d\n", PageSize);
+DEBUG('a', "Tamaño del se la pagina  %d\n", PageSize);
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 #ifndef VM
@@ -347,6 +347,20 @@ int  AddrSpace::secondChanceTLB()
 		ASSERT( false );
 	}
 	return libre;
+}
+void AddrSpace::actualizarVictimaSwap(int indiceSWAP)
+{
+	for (int i = 0; i < TLBSize; i++)
+	{
+		if ( machine->tlb[i].valid && (machine->tlb[i].physicalPage == pageTableInvertida[indiceSWAP]->physicalPage)  )
+		{
+			DEBUG('v',"%s\n", "\t\t\tSí estaba la victima en TLB" );
+			machine->tlb[i].valid = false;
+			pageTableInvertida[indiceSWAP]->use = machine->tlb[i].use;
+			pageTableInvertida[indiceSWAP]->dirty = machine->tlb[i].dirty;
+			break;
+		}
+	}
 }
 bool AddrSpace::PaginaEnArchivo(int page){
 
