@@ -56,7 +56,7 @@ SwapHeader (NoffHeader *noffH)
 //	"executable" is the file containing the object code to load into memory
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(OpenFile *executable, std::string filename)
+AddrSpace::AddrSpace(OpenFile *executable, const char* filename)
 {
     NoffHeader noffH;
     unsigned int j, size;
@@ -65,10 +65,10 @@ AddrSpace::AddrSpace(OpenFile *executable, std::string filename)
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
-DEBUG('a', "Archivo : %s\n", filename);
 #ifdef vm
-fn = filename;
+fn = std::string str(filename, strnlen(filename, max_length);
 #endif
+DEBUG('a', "Archivo : %s\n", filename);
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
 			+ UserStackSize;	// we need to increase the size
@@ -357,6 +357,10 @@ pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
 }
 OpenFile *exec = fileSystem->Open(fn.c_str());
+if (exec == NULL) {
+			DEBUG('a',"No se pudo abrir el archivo%s\n", fn.c_str() );
+			ASSERT(false);
+		}
 int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
 int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
 int libre; //aqui se guarda una direccion de memoria que este  libre

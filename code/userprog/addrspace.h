@@ -21,7 +21,7 @@
 
 class AddrSpace {
   public:
-    AddrSpace(OpenFile *executable, std::string filename="");	// Create an address space,
+    AddrSpace(OpenFile *executable, const char* filename="");	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
     AddrSpace(AddrSpace* padre);

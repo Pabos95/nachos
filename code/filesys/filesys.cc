@@ -230,7 +230,7 @@ FileSystem::Open(const char *name)
     Directory *directory = new Directory(NumDirEntries);
     OpenFile *openFile = NULL;
     int sector;
-
+    printf("Opening file %s\n", name);
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
     sector = directory->Find(name); 

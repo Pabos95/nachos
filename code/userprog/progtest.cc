@@ -25,12 +25,12 @@ StartProcess(const char *filename)
 {
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
-
+DEBUG('a',"Archivo : %s\n", filename);
     if (executable == NULL) {
 	printf("Unable to open file %s\n", filename);
 	return;
     }
-    space = new AddrSpace(executable);    
+    space = new AddrSpace(executable, filename);    
     currentThread->space = space;
 
     //delete executable;			// close file

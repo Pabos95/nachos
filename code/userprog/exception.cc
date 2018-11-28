@@ -245,51 +245,64 @@ void Nachos_Write() {                   // System call 7
 }// Nachos_Write
 
 void Nachos_Read(){
-  //Leemos el id para ver si es una entreada de consola o de un archivo
-      int id = machine->ReadRegister(6);
-      if( id == ConsoleInput ){
-        int buffer = machine->ReadRegister(4);
-        int size  = machine->ReadRegister(5);
-        char ch;
-        //En caso de que sea de consola, leemos el puntero al inicio del búfer y su tamaño
-        //Y luego leemos hasta que ya no haya
-        for( int i = 0; i < size; i++){
-            if( scanf("%c",&ch) != EOF )
-                  if( machine->WriteMem(buffer + i , 1, (int)ch ) == true )
-                        break;
-        }
+ //Leemos el id para ver si es una entreada de consola o de un archivo
+ printf("Reading!\n");
+  int r4 =  machine->ReadRegister(4); // puntero a la direccion de memoria en nachos
+  int tam = machine->ReadRegister(5); // numero de bytes a leer
+  OpenFileId idArchivo = machine->ReadRegister(6); // id del archivo a leer
+  char buffer[tam+ 1] = {0}; // almacena el archivo 
+  int bytesLeidos = 0; // numero de bytes leídos
+  int contador = 0; //contador del tamaño del nombre del archivo
+  char t = '\n'; //aqui se guarda el caracter que se va leyenda
 
-        machine->WriteRegister(2,0);
-        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-        machine->WriteRegister(NextPCReg, machine->ReadRegister(PCReg)+4);
-        }
-      else{
-        //En caso de que sea un archivo igual leemos todas esas variables
-        OpenFile* file = (OpenFile*)id;
-
-        	int buffer = machine -> ReadRegister(4);
-        	int size = machine -> ReadRegister(5);
-          int result = 0;
-
-          //Y leemos el a rchivo con la función SC_Read
-        	if (size > 0 && size <= 128)
-        	{
-        		char temp[128];
-        		result = file -> Read(temp, size);
-        		for (int i = 0; i < size; ++ i)
-        		{
-        			machine -> WriteMem(buffer + i, 1, (int)(temp[i]));
-        		}
-        		printf("buffer:%s.\n", temp);
-        	}
-
-        	  machine -> WriteRegister(2, result);
-        		machine -> WriteRegister(PrevPCReg, machine -> ReadRegister(PCReg));
-        		machine -> WriteRegister(PCReg, machine -> ReadRegister(NextPCReg));
-        		machine -> WriteRegister(NextPCReg, machine -> ReadRegister(PCReg) + 4);
-        //return result;
+  // verify if file is one of standar output/input
+  switch ( idArchivo ) {
+    case ConsoleOutput:
+    printf("%s\n", "Error no se puede leer la salida de la consola");
+    break;
+    case ConsoleError:
+    printf("%s\n", "No se pudo realizar la lectura. Error de la consola");
+    break;
+ //En caso de que sea una entrada de consola de consola, leemos el puntero al inicio del búfer y su tamaño
+    case ConsoleInput:
+    while (contador < tam )
+    {
+      t = getchar();
+      buffer[contador] = t;
+      contador++;
+    }
+    bytesLeidos = strlen(buffer);
+    stats->numConsoleCharsRead+=bytesLeidos; //se actualizan las estadisticas de bytes leidos
+//se escribe el archivo en la memoria   
+ for (int i= 0; i < bytesLeidos; i++ )
+    {
+      machine->WriteMem(r4, 1, buffer[i] );
+      ++r4;
+    }
+    machine->WriteRegister(2, bytesLeidos );
+    break;
+    default:
+    if ( currentThread->tablaArchivos->isOpened(idArchivo)) //si el archivo aun esta abierto
+    {
+      //  see lee usando el read de unix
+      bytesLeidos =  read( currentThread->tablaArchivos->getUnixHandle(idArchivo),
+      (void *)buffer, tam );
+      // se escribe en la memoria  de Nachos
+      for (int i = 0; i < bytesLeidos; i++ )
+      {
+        machine->WriteMem(r4, 1, buffer[i] );
+        ++r4;
       }
+      // se guarda en el registro 2 el número de bytes leidos
+      machine->WriteRegister(2, bytesLeidos );
+    }else //  no hubo lectura
+    {
+      printf("\t\tError: no se pudo leer el archivo\n");
+      machine->WriteRegister(2,-1);
+    }
+    break;
+  }
+  returnFromSystemCall();
 }
 
 void Nachos_Create(){
