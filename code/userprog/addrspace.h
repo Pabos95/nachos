@@ -38,7 +38,7 @@ class AddrSpace {
     int secondChanceTLB(); //aplica el algoritmo de second chance a la TLB
     void buscarVictimaSwap(int indiceSWAP);
     void salvarVictimaTLB( int indiceTLB, bool uso );
-    std::string fn; //Nombre del archivo ejecutable
+    char* fn; //Nombre del archivo ejecutable
     unsigned int datosInicializados;
     unsigned int datosNoInicializados;
     unsigned int pila;

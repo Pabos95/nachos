@@ -65,9 +65,7 @@ AddrSpace::AddrSpace(OpenFile *executable, const char* filename)
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
-#ifdef vm
-fn = std::string str(filename, strnlen(filename, max_length);
-#endif
+fn = (char*) filename;
 DEBUG('a', "Archivo : %s\n", filename);
 // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
@@ -356,9 +354,11 @@ for(int i = 0; i < 4; i++){
 pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
 }
-OpenFile *exec = fileSystem->Open(fn.c_str());
+printf("Archivo : %s\n", fn);
+printf("Archivo : %s\n", fn);
+OpenFile *exec = fileSystem->Open(fn);
 if (exec == NULL) {
-			DEBUG('a',"No se pudo abrir el archivo%s\n", fn.c_str() );
+			DEBUG('a',"No se pudo abrir el archivo%s\n", fn);
 			ASSERT(false);
 		}
 int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
@@ -375,7 +375,7 @@ exec->ReadAt((char *)&noffH, sizeof(noffH), 0);
 DEBUG('a', "Leido el ejecutable");
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
 //busca espacio libre en la memoria para esta pagina
-DEBUG('a', "\tArchivo origen del page fault: %s\n", fn.c_str());
+DEBUG('a', "\tArchivo origen del page fault: %s\n", fn);
 libre = mapaGlobal.Find();
 //actualiza las estadisticas sobre el numero de page faults
 ++stats->numPageFaults;
