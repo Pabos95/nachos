@@ -231,9 +231,9 @@ for(int i = 0; i < TLBSize; ++i){
 #endif 
 }
 int AddrSpace::secondChanceSwap(){
-if ( indexSWAPSndChc < 0 || indexSWAPSndChc >= NumPhysPages )
+if ( indiceSWAPSecondChance < 0 || indiceSWAPSecondChance >= NumPhysPages )
 	{
-		DEBUG('v', "Indice swap %d \n invalido", indexSWAPSndChc );
+		DEBUG('v', "Indice swap %d \n invalido", indiceSWAPSecondChance );
 		ASSERT( false );
 	}
 	int espacioLibre = -1;
@@ -241,27 +241,27 @@ if ( indexSWAPSndChc < 0 || indexSWAPSndChc >= NumPhysPages )
 
 	while ( encontrado == false )
 	{
-		if ( pageTableInvertida[ indexSWAPSndChc ] == NULL )
+		if ( pageTableInvertida[ indiceSWAPSecondChance ] == NULL )
 		{
 		DEBUG('v', "\Error estado de la pageTableInvertida invalido \n");
 		ASSERT( false );
 		}
 
-		if ( pageTableInvertida[ indexSWAPSndChc ]->valid == false )
+		if ( pageTableInvertida[ indiceSWAPSecondChance ]->valid == false )
 		{
 			DEBUG('v', "\nEntrada invalida de la page table invertida (use es falso)");
 			ASSERT( false );
 		}
 
-		if ( pageTableInvertida[ indexSWAPSndChc ]->use == true )
+		if ( pageTableInvertida[ indiceSWAPSecondChance ]->use == true )
 		{
-				pageTableInvertida[ indexSWAPSndChc ]->use = false;
+				pageTableInvertida[ indiceSWAPSecondChance ]->use = false;
 		}else
 		{
-				espacioLibre = indexSWAPSndChc;
+				espacioLibre = indiceSWAPSecondChance;
 				encontrado = true;
 		}
-		indexSWAPSndChc = (indexSWAPSndChc+1) % NumPhysPages;
+		indiceSWAPSecondChance = (indiceSWAPSecondChance+1) % NumPhysPages;
 	}
 
 	if (espacioLibre < 0 || espacioLibre >= NumPhysPages )
@@ -286,8 +286,8 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
 #else
 //se devuelven los indices de second chance
-indexSWAPSndChc = 0;
-indexTLBSndChc = 0;
+indiceSWAPSecondChance = 0;
+indiceTLBSecondChance = 0;
 //se hace una nueva TLB
 machine->tlb = new TranslationEntry[TLBSize];
 for (int i = 0; i < TLBSize; ++i)
@@ -329,17 +329,17 @@ int  AddrSpace::secondChanceTLB()
 	bool espacioEncontrado = false;
 	while ( espacioEncontrado == false )
 	{
-		if ( machine->tlb[ indexTLBSndChc ].use == true )
+		if ( machine->tlb[ indiceTLBSecondChance ].use == true )
 		{
-			machine->tlb[ indexTLBSndChc ].use = false;
-			salvarVictimaTLB( indexTLBSndChc, true );
+			machine->tlb[ indiceTLBSecondChance ].use = false;
+			salvarVictimaTLB( indiceTLBSecondChance, true );
 		}else
 		{
 			espacioEncontrado = true;
-			libre = indexTLBSndChc;
+			libre = indiceTLBSecondChance;
 			salvarVictimaTLB( libre, false );
 		}
-		indexTLBSndChc = (indexTLBSndChc+1) % TLBSize;
+		indiceTLBSecondChance = (indiceTLBSecondChance+1) % TLBSize;
 	}
 	if ( libre < 0 || libre >= TLBSize )
 	{
@@ -417,7 +417,7 @@ if (libre != -1  ){ //si se encontro espacio en memoria
 }
 //si no se encontro espacio entonces busca una victima swap
 else{
-indexSWAPSndChc = secondChanceTLB();
+indiceSWAPSecondChance = secondChanceTLB();
 
 }
 }
@@ -455,16 +455,16 @@ return i;
 // si itero toda la TLB y no encontro ninguna pagina no valida busca cual reemplezar
 bool encontrado = false;
 while(encontrado == false){
-if ( machine->tlb[ indexTLBSndChc ].use == true )
+if ( machine->tlb[ indiceTLBSecondChance ].use == true )
 		{
-			machine->tlb[ indexTLBSndChc ].use = false;
-			salvarVictimaTLB( indexTLBSndChc, true );
+			machine->tlb[ indiceTLBSecondChance ].use = false;
+			salvarVictimaTLB( indiceTLBSecondChance, true );
 		}else
 		{
 			encontrado = true;
-			espacioLibre = indexTLBSndChc;
+			espacioLibre = indiceTLBSecondChance;
 			salvarVictimaTLB( espacioLibre, false );
 		}
-		indexTLBSndChc = (indexTLBSndChc+1) % TLBSize;
+		indiceTLBSecondChance = (indiceTLBSecondChance+1) % TLBSize;
 }
 }

@@ -33,8 +33,10 @@ SynchDisk   *synchDisk;
 #endif
 
 #ifdef USER_PROGRAM	// requires either FILESYS or FILESYS_STUB
-int indexTLBSndChc = 0;  //variable global para guardar el indice de la TLB en la que se encuentra el second chance
-int indexSWAPSndChc = 0;
+int indiceTLBSecondChance = 0;  //variable global para guardar el indice de la TLB en la que se encuentra el second chance
+int indiceSWAPSecondChance = 0;
+int indiceSWAPFIFO = 0;
+int indiceTLBFIFO = 0;
 BitMap mapaGlobal = BitMap(PageSize * NumPhysPages); //bitMap global para saber cuales paginas están ocupadas
 Machine *machine;	// user program memory and registers
 TranslationEntry* pageTableInvertida[NumPhysPages];
@@ -100,8 +102,8 @@ Initialize(int argc, char **argv)
     bool preemptiveScheduling = false;
     long long timeSlice;
 //inicializa los indices de second chance en 0
-    indexTLBSndChc = 0;
-    indexSWAPSndChc = 0;
+    indiceTLBSecondChance = 0;
+    indiceTLBSecondChance = 0;
 #ifdef USER_PROGRAM
     bool debugUserProg = false;	// single step user program
 #endif
