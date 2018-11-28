@@ -72,6 +72,11 @@ DEBUG('a', "Archivo : %s\n", filename);
 			+ UserStackSize;	// we need to increase the size
 						// to leave room for the stack
 	/*std::cout<<"El tamaño del ejecutable es "<<size<<std::endl;*/
+DEBUG('a', "Tamaño del segmento de codigo %d\n", noffH.code.size);
+DEBUG('a', "Tamaño del segmento de datos inicializados %d\n", noffH.initData.size);
+DEBUG('a', "Tamaño del segmento de datos no inicializados %d\n", noffH.uninitData.size);
+DEBUG('a', "Tamaño del segmento de datos inicializados %d\n", UserStackSize);
+DEBUG('a', "Tamaño del  la pagina  %d\n", PageSize);
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 #ifndef VM
@@ -146,7 +151,11 @@ AddrSpace::AddrSpace(AddrSpace* padre){
 
 	for(int i = padre->numPages-8; i < padre->numPages; i++){
 		pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+#ifndef vm
 		pageTable[i].physicalPage = mapaGlobal.Find();
+#else
+     pageTable[i].physicalPage = padre->pageTable[i].physicalPage;
+#endif
 		pageTable[i].valid = true;
 		pageTable[i].use = false;
 		pageTable[i].dirty = false;
