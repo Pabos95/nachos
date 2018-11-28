@@ -38,6 +38,7 @@ int indiceSWAPSecondChance = 0;
 int indiceSWAPFIFO = 0;
 int indiceTLBFIFO = 0;
 BitMap mapaGlobal = BitMap(PageSize * NumPhysPages); //bitMap global para saber cuales paginas están ocupadas
+BitMap* mapaSWAP;
 Machine *machine;	// user program memory and registers
 TranslationEntry* pageTableInvertida[NumPhysPages];
 #endif
@@ -94,6 +95,7 @@ Initialize(int argc, char **argv)
     const char* debugArgs = "";
     bool randomYield = false;
     mapaGlobal = BitMap(NumPhysPages);
+    mapaSWAP = new BitMap(tamSWAP);
  for (int i = 0; i< NumPhysPages; ++i)
     {
       pageTableInvertida[i] = NULL;

@@ -315,6 +315,9 @@ void AddrSpace::usarIndiceTLB( int indiceTLB, int vpn )
 	machine->tlb[indiceTLB].dirty = pageTable[vpn].dirty;
 	machine->tlb[indiceTLB].readOnly = pageTable[vpn].readOnly;
 }
+void AddrSpace::escribirEnSWAP(int dirFisicaVictima){
+
+}
 int  AddrSpace::secondChanceTLB()
 {
 	int libre = -1;
@@ -417,8 +420,11 @@ if (libre != -1  ){ //si se encontro espacio en memoria
 }
 //si no se encontro espacio entonces busca una victima swap
 else{
-indiceSWAPSecondChance = secondChanceTLB();
+indiceSWAPFIFO= secondChanceTLB();
+actualizarVictimaSwap(indiceSWAPFIFO);
+if(pageTableInvertida[indiceSWAPFIFO]->dirty){
 
+}
 }
 }
 /* Caso2

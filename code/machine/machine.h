@@ -36,6 +36,7 @@ const int NumPhysPages = 32; //se aumento el numero de paginas fisicas para que 
 #else
 const int NumPhysPages = 4;
 #endif
+const int tamSWAP = 64;
 const int MemorySize =  NumPhysPages * PageSize;
 const int TLBSize = 4;			// if there is a TLB, make it small
 #define SWAPFILENAME "Swap.txt"
