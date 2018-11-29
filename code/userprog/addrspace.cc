@@ -315,8 +315,28 @@ void AddrSpace::usarIndiceTLB( int indiceTLB, int vpn )
 	machine->tlb[indiceTLB].dirty = pageTable[vpn].dirty;
 	machine->tlb[indiceTLB].readOnly = pageTable[vpn].readOnly;
 }
-void AddrSpace::escribirEnSWAP(int dirFisicaVictima){
-
+void AddrSpace::escribirEnSWAP(int paginaFisicaVictima){
+int paginaSwap = mapaSWAP->Find(); //busca una pagina libre en el swap
+if ( paginaSwap == -1 ){
+DEBUG( 'v', "Error no hay espacio en el swap\n");
+ASSERT( false );
+}
+if ( paginaFisicaVictima < 0 || paginaFisicaVictima >= NumPhysPages ){
+DEBUG( 'a', "Error al escribir en swap : numero de pagina  %d\ no valido", paginaFisicaVictima );
+ASSERT( false );
+	}
+DEBUG('a', "Se escribira en la pagina del swap: %d\n",paginaSwap);
+OpenFile *swap = fileSystem->Open("Swap.txt"); //se abre el archivo SWAP
+	if( swap == NULL ){
+		DEBUG( 'a', "Error no se pudo abrir el archivo de swap\n");
+		ASSERT(false);
+	}
+mapaGlobal.Clear(indiceSWAPFIFO); //se libera un espacio en el mapa de memoria
+pageTableInvertida[paginaFisicaVictima]->valid = false;
+pageTableInvertida[paginaFisicaVictima]->physicalPage = paginaSwap;
+swap->WriteAt((&machine->mainMemory[paginaFisicaVictima*PageSize]),PageSize, paginaSwap*PageSize);
+//una vez que se ha escrito la pagina en el swap se elimina el OpenFile
+delete swap;
 }
 int  AddrSpace::secondChanceTLB()
 {

@@ -36,7 +36,7 @@ class AddrSpace {
     int  BuscarTLBSecondChance(); //intenta buscar espacio en la TLB mediante el algoritmo de second chance
     int secondChanceSwap(); //aplica el algoritmo de second chance al archivo de SWAP
     int secondChanceTLB(); //aplica el algoritmo de second chance a la TLB
-    void escribirEnSWAP(int dirFisicaVictima); //envia una pagina al archivo SWAP
+    void escribirEnSWAP(int paginaFisicaVictima); //envia una pagina al archivo SWAP
     void buscarVictimaSwap(int indiceSWAP);
     void salvarVictimaTLB( int indiceTLB, bool uso );
  void actualizarVictimaSwap(int indiceSWAP);
