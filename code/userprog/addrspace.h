@@ -42,9 +42,11 @@ class AddrSpace {
  void actualizarVictimaSwap(int indiceSWAP);
     char* fn; //Nombre del archivo ejecutable
    static const int codigo = 0;
-    unsigned int datosInicializados;
-    unsigned int datosNoInicializados;
-    unsigned int pila;
+   static const int code = 0;
+  unsigned int data;
+  unsigned int initData;
+  unsigned int noInitData;
+  unsigned int stack;
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation  
 			// for now!

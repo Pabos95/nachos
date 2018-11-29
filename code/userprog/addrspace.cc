@@ -104,9 +104,9 @@ DEBUG('a', "Tamaño del se la pagina  %d\n", PageSize);
 		// a separate page, we could set its
 		// pages to be read-only
 	}
- datosInicializados = divRoundUp(noffH.code.size, PageSize);
- datosNoInicializados = datosInicializados + divRoundUp(noffH.initData.size, PageSize);
- pila = numPages - divRoundUp(UserStackSize,PageSize);
+initData = divRoundUp(noffH.code.size, PageSize);
+	noInitData = initData + divRoundUp(noffH.initData.size, PageSize);
+	stack = numPages - divRoundUp(UserStackSize,PageSize);
 DEBUG('a', "Creado el page table");
 #ifndef VM
 	bzero(machine->mainMemory, size);
@@ -392,10 +392,10 @@ int it = 0;
 void AddrSpace::Load(unsigned int vpn){
 DEBUG('a', "Archivo de origen : %s\n", fn);
 DEBUG('a', "Numero de paginas: %d, Nombre del hilo actual: %s\n", numPages, currentThread->getName());
-	DEBUG('a', "\tEl segmento de còdigo va de %d a %d \n",0, datosInicializados);
-	DEBUG('a',"\t El segemento de datos incializados va de %d a  %d \n", datosInicializados, datosNoInicializados);
-	DEBUG('a', "\t El segmento de datos no incializados va de %d a %d \n", datosNoInicializados , pila);
-DEBUG('a',"\t El segmento de pila va de %d a  %d \n", pila, numPages );
+	DEBUG('a', "\tEl segmento de còdigo va de %d a %d \n",0, initData);
+	DEBUG('a',"\t El segemento de datos incializados va de %d a  %d \n", initData, initData);
+	DEBUG('a', "\t El segmento de datos no incializados va de %d a %d \n", initData , stack);
+DEBUG('a',"\t El segmento de stack va de %d a  %d \n", stack, numPages );
 for(int i = 0; i < 4; i++){
 pageTable[machine->tlb[i].virtualPage].dirty = machine->tlb[i].dirty;
 pageTable[machine->tlb[i].virtualPage].use = machine->tlb[i].use;
@@ -410,16 +410,16 @@ if (exec == NULL) {
 int numPaginasCodigo = divRoundUp(noff.code.size, PageSize);
 int numPaginasDatos = divRoundUp(noff.initData.size, PageSize);
 int libre; //aqui se guarda una direccion de memoria que este  libre
-//si la pagina a cargar pertenece al segmento de codigo
-if((vpn >= 0) && (vpn < datosInicializados)){
-DEBUG('a', "\tLa pagina pertenece al semgneto de codigo");
-/* Caso1
-si la página a cargar es de código Y NO es Valida Ni Sucia
-*/
 NoffHeader noffH;
 exec->ReadAt((char *)&noffH, sizeof(noffH), 0);
 DEBUG('a', "Leido el ejecutable");
 if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == false)){
+//si la pagina a cargar pertenece al segmento de codigo
+/* Caso1
+si la página a cargar es de código Y NO es Valida Ni Sucia
+*/
+if((vpn >= 0) && (vpn < initData)){
+DEBUG('a', "\tLa pagina pertenece al semgneto de codigo");
 //busca espacio libre en la memoria para esta pagina
 DEBUG('a', "\tArchivo origen del page fault: %s\n", fn);
 libre = mapaGlobal.Find();
@@ -437,6 +437,7 @@ if (libre != -1  ){ //si se encontro espacio en memoria
 				//Luego se debe actualizar el TLB
                                 int espacioTLB = secondChanceTLB();
                                 usarIndiceTLB( espacioTLB, vpn );
+DEBUG('a', "if libre != -1");
 }
 //si no se encontro espacio entonces busca una victima swap
 else{
@@ -484,20 +485,108 @@ int tlbSPace = secondChanceTLB();
 usarIndiceTLB(tlbSPace,vpn);
 }
 }
-/* Caso2
+}
+else if(vpn >= initData && vpn < noInitData){ // Caso 2 la pagina pertenece al segmento de Datos Inicializados y no es valida ni sucia.
+			//Se debe cargar la pagina del archivo ejecutable.
+			DEBUG('v', "\t1.2 Página de datos Inicializados\n");
+			libre = mapaGlobal.Find();
+
+			if ( libre != -1  )
+			{
+				DEBUG('v',"Frame libre en memoria: %d\n", libre );
+				pageTable[ vpn ].physicalPage = libre;
+				exec->ReadAt(&(machine->mainMemory[ ( libre * PageSize ) ] ),
+				PageSize, noffH.code.inFileAddr + PageSize*vpn );
+				pageTable[ vpn ].valid = true;
+
+				//Se actualiza la TLB invertida
+				pageTableInvertida[libre] = &(pageTable[ vpn ]);
+				//Se debe actualizar el TLB
+				int tlbSPace = secondChanceTLB();
+				usarIndiceTLB( tlbSPace, vpn );
+			}else
+			{
+				//Se debe selecionar una victima para enviar al SWAP
+				indiceSWAPFIFO = secondChanceSwap();
+				actualizarVictimaSwap(indiceSWAPFIFO);
+
+				 
+				// revisar si la victima está sucia
+				if (pageTableInvertida[indiceSWAPFIFO]->dirty)
+				{
+					//si sí
+						//envíarla al swap
+						DEBUG('v',"\t\t\tVictima f=%d,l=%d y  sucia\n",pageTableInvertida[indiceSWAPFIFO]->physicalPage, pageTableInvertida[indiceSWAPFIFO]->virtualPage );
+						escribirEnSWAP( pageTableInvertida[indiceSWAPFIFO]->physicalPage );
+						//pedir el nuevo libre
+						libre = mapaGlobal.Find();
+						//validar ese nuevo libre
+						if ( -1 == libre )
+						{
+							printf("Invalid free frame %d\n", libre );
+							ASSERT( false );
+						}
+						// asignar al pageTable[vpn] es libre
+						pageTable[ vpn ].physicalPage = libre;
+						// leer del archivo ejecutable
+						exec->ReadAt(&(machine->mainMemory[ ( libre * PageSize ) ] ),
+						PageSize, noffH.code.inFileAddr + PageSize*vpn );
+						//poner valida la paginas
+						pageTable[ vpn ].valid = true;
+						//actualiza la tabla de paginas invertidas
+						pageTableInvertida[ libre ] = &( pageTable[ vpn ] );
+						//hacer la actualización en la tlb
+						int tlbSPace = secondChanceTLB();
+						usarIndiceTLB( tlbSPace, vpn );
+				}else
+				{
+					//si no esta sucia
+					DEBUG('v',"\t\t\tVictima f=%d,l=%d y limpia\n",pageTableInvertida[indiceSWAPFIFO]->physicalPage, pageTableInvertida[indiceSWAPFIFO]->virtualPage );
+						// rescatar la antigua fisica de la victima
+						int paginaFisicaAnterior = pageTableInvertida[indiceSWAPFIFO]->physicalPage;
+						mapaGlobal.Clear( paginaFisicaAnterior );
+						// poner a la victima en  valid = false
+						pageTableInvertida[indiceSWAPFIFO]->valid = false;
+						//ponerle la pagina fisica en -1
+						pageTableInvertida[indiceSWAPFIFO]->physicalPage = -1;
+						// pedir el nuevo libre
+						libre = mapaGlobal.Find();
+						//validar ese nuevo libre
+						if ( libre == -1 )
+						{
+							printf("Invalid free frame %d\n", libre );
+							ASSERT( false );
+						}
+						//asignar ese libre al pageTable[vpn]
+						pageTable[ vpn ].physicalPage = libre;
+						//leer del archivo ejecutable
+						exec->ReadAt(&(machine->mainMemory[ ( libre * PageSize ) ] ),
+						PageSize, noffH.code.inFileAddr + PageSize*vpn );
+						//valida dicha pageTable[vpn]
+						pageTable[ vpn ].valid = true;
+						//actualizar tabla de paginas invertidas
+						pageTableInvertida[ libre ] = &(pageTable [ vpn ]);
+						// actualizar la tlp
+						int tlbSPace = secondChanceTLB();
+						usarIndiceTLB( tlbSPace, vpn );
+				}
+				//ASSERT(false);
+			}
+		}
+}
+/* Caso3
 si la página a cargar es de código Y No es valida y es sucia
 */
-if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == true)){
+//if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == true)){
+//}
 }
-}
-//se guarda la página en la page table
-}
-machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
+/*machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
 			machine->tlb[vpn].physicalPage = pageTable[it].physicalPage;
 			machine->tlb[it].valid = pageTable[vpn].valid;
 			machine->tlb[it].use = pageTable[vpn].use;
 			machine->tlb[it].dirty = pageTable[vpn].dirty;
-machine->tlb[it].readOnly = pageTable[vpn].readOnly;
+machine->tlb[it].readOnly = pageTable[vpn].readOnly;*/
+DEBUG('a', "Llega al final del load");
 }
 void AddrSpace::salvarVictimaTLB(int indiceTLB, bool uso){
 if ( indiceTLB < 0 || indiceTLB >= TLBSize  )
@@ -519,16 +608,17 @@ return i;
 // si itero toda la TLB y no encontro ninguna pagina no valida busca cual reemplezar
 bool encontrado = false;
 while(encontrado == false){
-if ( machine->tlb[ indiceTLBSecondChance ].use == true )
+if ( machine->tlb[indiceTLBSecondChance].use == true )
 		{
 			machine->tlb[ indiceTLBSecondChance ].use = false;
 			salvarVictimaTLB( indiceTLBSecondChance, true );
 		}else
 		{
-			encontrado = true;
-			espacioLibre = indiceTLBSecondChance;
-			salvarVictimaTLB( espacioLibre, false );
+		encontrado = true;
+		espacioLibre = indiceTLBSecondChance;
+		salvarVictimaTLB( espacioLibre, false );
 		}
 		indiceTLBSecondChance = (indiceTLBSecondChance+1) % TLBSize;
 }
+return espacioLibre;
 }

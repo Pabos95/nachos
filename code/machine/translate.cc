@@ -94,6 +94,7 @@ Machine::ReadMem(int addr, int size, int *value)
     DEBUG('a', "Reading VA 0x%x, size %d\n", addr, size);
     
     exception = Translate(addr, &physicalAddress, size, false);
+    DEBUG('a', "Execepcion encontrada %d\n",exception);
     if (exception != NoException) {
 	machine->RaiseException(exception, addr);
 	return false;

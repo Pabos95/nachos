@@ -560,6 +560,7 @@ void ExceptionHandler(ExceptionType which)
                     printf("Ocurre en la direccion: %d \n", dirLogica);
                     printf(" En la pagina : %d \n", vpn);
                   currentThread->space->Load(vpn);
+printf("Sale de load");
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
 		     printf("Excepcion de read only");			    // "read-only"
