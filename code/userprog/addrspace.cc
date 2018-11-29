@@ -366,7 +366,7 @@ int  AddrSpace::secondChanceTLB()
 	}
 	if ( libre < 0 || libre >= TLBSize )
 	{
-		DEBUG('v',"\ngetNextSCTLB: Invalid tlb information\n");
+		DEBUG('v',"\ Pagina libre invalida\n");
 		ASSERT( false );
 	}
 	return libre;
@@ -443,8 +443,45 @@ else{
 indiceSWAPFIFO= secondChanceTLB();
 actualizarVictimaSwap(indiceSWAPFIFO);
 if(pageTableInvertida[indiceSWAPFIFO]->dirty){
-
+//como al escribir en SWAP se libero un espacio en la memoria entonces vuelve buscarlo en el mapa de memoria
+libre = mapaGlobal.Find();
+//si no se encontro espacio en el mapa quiere decir que la memoria esta fallando
+if (libre == -1){
+printf("Error al cargar la pagina a memoria %d\n", libre );
+ASSERT( false );
 }
+//se marca la pagina fisica libre recien encontrada en la pageTable
+pageTable[vpn].physicalPage = libre;
+//se continua la lectura del programa cargando a la memoria la pagina siguiente
+exec->ReadAt(&(machine->mainMemory[(libre* PageSize )]),PageSize, noffH.code.inFileAddr + PageSize*vpn );
+//se marca la pagina como valida
+pageTable[vpn].valid = true;
+//se actualiza la page table invertida
+pageTableInvertida[libre] =  &(pageTable[vpn]);
+//se busca el siguiente espacio a usar en la TLB con second chance
+int siguiente = secondChanceTLB();
+usarIndiceTLB(siguiente, vpn);
+}
+else{ //si la victima es limpia
+int pagFisicaAntigua = pageTableInvertida[indiceSWAPFIFO]->physicalPage;
+//se elimina la pagina fisica y se marca esa entrada como invalida
+pageTableInvertida[indiceSWAPFIFO]->physicalPage = -1;
+pageTableInvertida[indiceSWAPFIFO]->valid = false;
+//se libera el espacio en el mapa de memoria
+mapaGlobal.Clear(pagFisicaAntigua);
+//se busca un nuevo espacio libre en memoria
+libre = mapaGlobal.Find();
+//si no se encontro un espacio libre
+if (libre == -1 ){
+printf("Frame %d\n no valido", libre );
+ASSERT( false );
+}
+pageTable[vpn].physicalPage = libre;
+exec->ReadAt(&(machine->mainMemory[(libre* PageSize )]),PageSize, noffH.code.inFileAddr + PageSize*vpn );
+pageTable[vpn].valid = true;
+pageTableInvertida[libre] = &(pageTable [ vpn ]);
+int tlbSPace = secondChanceTLB();
+usarIndiceTLB(tlbSPace,vpn);
 }
 }
 /* Caso2
@@ -454,6 +491,7 @@ if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == true)){
 }
 }
 //se guarda la página en la page table
+}
 machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
 			machine->tlb[vpn].physicalPage = pageTable[it].physicalPage;
 			machine->tlb[it].valid = pageTable[vpn].valid;
