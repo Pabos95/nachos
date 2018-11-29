@@ -586,8 +586,8 @@ si la página a cargar es de código Y No es valida y es sucia
 			machine->tlb[it].use = pageTable[vpn].use;
 			machine->tlb[it].dirty = pageTable[vpn].dirty;
 machine->tlb[it].readOnly = pageTable[vpn].readOnly;*/
-DEBUG('a', "Llega al final del load");
-}
+//DEBUG('a', "Llega al final del load");
+//}
 void AddrSpace::salvarVictimaTLB(int indiceTLB, bool uso){
 if ( indiceTLB < 0 || indiceTLB >= TLBSize  )
 	{
