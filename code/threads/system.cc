@@ -37,7 +37,7 @@ int indiceTLBSecondChance = 0;  //variable global para guardar el indice de la T
 int indiceSWAPSecondChance = 0;
 int indiceSWAPFIFO = 0;
 int indiceTLBFIFO = 0;
-BitMap mapaGlobal = BitMap(PageSize * NumPhysPages); //bitMap global para saber cuales paginas están ocupadas
+BitMap* mapaGlobal; //bitMap global para saber cuales paginas están ocupadas
 BitMap* mapaSWAP;
 Machine *machine;	// user program memory and registers
 TranslationEntry* pageTableInvertida[NumPhysPages];
@@ -94,12 +94,8 @@ Initialize(int argc, char **argv)
     int argCount;
     const char* debugArgs = "";
     bool randomYield = false;
-    mapaGlobal = BitMap(NumPhysPages);
+    mapaGlobal = new BitMap(NumPhysPages);
     mapaSWAP = new BitMap(tamSWAP);
- for (int i = 0; i< NumPhysPages; ++i)
-    {
-      pageTableInvertida[i] = NULL;
-    }
 // 2007, Jose Miguel Santos Espino
     bool preemptiveScheduling = false;
     long long timeSlice;

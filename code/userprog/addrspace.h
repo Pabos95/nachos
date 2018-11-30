@@ -39,6 +39,9 @@ class AddrSpace {
     void escribirEnSWAP(int paginaFisicaVictima); //envia una pagina al archivo SWAP
     void buscarVictimaSwap(int indiceSWAP);
     void salvarVictimaTLB( int indiceTLB, bool uso );
+void imprimirPageTable();
+void imprimirPageTableInvertida();
+void imprimirTLB();
  void actualizarVictimaSwap(int indiceSWAP);
     char* fn; //Nombre del archivo ejecutable
    static const int codigo = 0;

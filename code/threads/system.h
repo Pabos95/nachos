@@ -28,7 +28,7 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 #ifdef USER_PROGRAM
-extern BitMap mapaGlobal;		//Mapa de bits global para saber cuales paginas están ocupadas en la memoria fisica
+extern BitMap* mapaGlobal;		//Mapa de bits global para saber cuales paginas están ocupadas en la memoria fisica
 extern BitMap* mapaSWAP; //bitmap para saber que posiciones del swap estan ocupadas
 extern Machine* machine;	// user program memory and registers
 extern int indiceSWAPFIFO;

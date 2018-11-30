@@ -134,6 +134,9 @@ printf("Ejecutable no encontrado");
 void Nachos_Close() {
   //Leemos dirección al archivo
     int closeF = machine -> ReadRegister(4);
+int unixId = currentThread->tablaArchivos->getUnixHandle(closeF);
+int closeNachos = currentThread->tablaArchivos->Close(closeF);
+int closeUnix = close(unixId);
     if(closeF != 0)
     {
       printf("Cierra archivo\n",closeF );
@@ -272,6 +275,7 @@ void Nachos_Read(){
       contador++;
     }
     bytesLeidos = strlen(buffer);
+buffer[tam+1] = '\0';
     stats->numConsoleCharsRead+=bytesLeidos; //se actualizan las estadisticas de bytes leidos
 //se escribe el archivo en la memoria   
  for (int i= 0; i < bytesLeidos; i++ )
@@ -324,13 +328,12 @@ do{
   		printf("Creamos archivo == %s.\n", fileName);
   		int result = creat (fileName, O_CREAT|S_IRWXU );
   		DEBUG('s', "[]Creación de archivo: %s", fileName);
-
+close(result);
   if (result == -1 ) //si no sirve el creat
   {
     printf("No se pudo crear el archivo");
 
   }		
-close(result);
 returnFromSystemCall();
 }
 void NachosExecThread( void* id)
@@ -344,8 +347,8 @@ void NachosExecThread( void* id)
     printf("Unable to open file %s\n",info->nombreArchivo);
     return;
   }
+delete currentThread->space; // i dont need may space anymore
   space = new AddrSpace( executable );
-  delete currentThread->space; // i dont need may space anymore
   currentThread->space = space;
 
   delete executable;			        // close file

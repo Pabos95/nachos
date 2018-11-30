@@ -33,11 +33,18 @@
 #include "machine.h"
 #include "addrspace.h"
 #include "system.h"
-
 // Routines for converting Words and Short Words to and from the
 // simulated machine's format of little endian.  These end up
 // being NOPs when the host machine is also little endian (DEC and Intel).
-
+TranslationEntry::TranslationEntry(){
+virtualPage = 0;
+physicalPage = 0;
+valid = false;
+readOnly = false;
+use = false;
+dirty = false;
+dirty = false;
+}
 unsigned int
 WordToHost(unsigned int word) {
 #ifdef HOST_IS_BIG_ENDIAN
