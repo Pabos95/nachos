@@ -96,12 +96,15 @@ Initialize(int argc, char **argv)
     bool randomYield = false;
     mapaGlobal = new BitMap(NumPhysPages);
     mapaSWAP = new BitMap(tamSWAP);
+    for(int i = 0; i < NumPhysPages; i++){
+pageTableInvertida[i] = NULL;
+}
 // 2007, Jose Miguel Santos Espino
     bool preemptiveScheduling = false;
     long long timeSlice;
 //inicializa los indices de second chance en 0
     indiceTLBSecondChance = 0;
-    indiceTLBSecondChance = 0;
+    indiceSWAPSecondChance = 0;
 #ifdef USER_PROGRAM
     bool debugUserProg = false;	// single step user program
 #endif

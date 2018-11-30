@@ -63,8 +63,11 @@ Machine::Machine(bool debug)
       	mainMemory[i] = 0;
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLBSize];
-    for (i = 0; i < TLBSize; i++)
+    for (i = 0; i < TLBSize; i++){
 	tlb[i].valid = false;
+        tlb[i].physicalPage = 0;
+//DEBUG('a', "Valor de la pagina fisica de la tlb %d \n", tlb[i].physicalPage);
+}
     pageTable = NULL;
 #else	// use linear page table
     tlb = NULL;

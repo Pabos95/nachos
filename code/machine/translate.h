@@ -29,7 +29,6 @@
 
 class TranslationEntry {
   public:
-    TranslationEntry();
     int virtualPage;  	// The page number in virtual memory.
     int physicalPage;  	// The page number in real memory (relative to the
 			//  start of "mainMemory"

@@ -163,7 +163,7 @@ printf("Entra a open");
     int i = 0;
     int idFalsa;
     do{
-        machine->ReadMem(dir +i,1 ,&caracterActual); //lee un caracter de la memoria
+        machine->SafeReadMem(dir +i,1 ,&caracterActual); //lee un caracter de la memoria
         name[i++] = caracterActual;
         i++;
     }while(caracterActual != 0);
@@ -207,7 +207,7 @@ void Nachos_Write() {                   // System call 7
     buffer[0] = valorActual;
     int pos = 1;
     while(valorActual != '\0'){
-        machine->ReadMem(adress,1,&valorActual);
+        machine->SafeReadMem(adress,1,&valorActual);
         buffer[pos] = valorActual;
         adress++; //se aumenta la direccion de memoria para leer el siguiente valor
         pos++; //se aumenta la posicion del buffer
@@ -280,7 +280,7 @@ buffer[tam+1] = '\0';
 //se escribe el archivo en la memoria   
  for (int i= 0; i < bytesLeidos; i++ )
     {
-      machine->WriteMem(r4, 1, buffer[i] );
+      machine->SafeWriteMem(r4, 1, buffer[i] );
       ++r4;
     }
     machine->WriteRegister(2, bytesLeidos );
@@ -294,7 +294,7 @@ buffer[tam+1] = '\0';
       // se escribe en la memoria  de Nachos
       for (int i = 0; i < bytesLeidos; i++ )
       {
-        machine->WriteMem(r4, 1, buffer[i] );
+        machine->SafeWriteMem(r4, 1, buffer[i] );
         ++r4;
       }
       // se guarda en el registro 2 el número de bytes leidos
@@ -318,7 +318,7 @@ DEBUG('s', "Entra a create");
 int i = 0;
       //Luego leemos el nombre del archivo a crear
 do{
-    machine->ReadMem( bufOffset , 1 , &c ); // read from nachos mem
+    machine->SafeReadMem( bufOffset , 1 , &c ); // read from nachos mem
     bufOffset++;
     fileName[i] = c;
     ++i;
@@ -370,7 +370,7 @@ DEBUG( 't', "Entering EXEC System call\n" );
   int c, i; // contadores
   i = 0;
   do{
-    machine->ReadMem( registro4 , 1 , &c ); // read from nachos mem
+    machine->SafeReadMem( registro4 , 1 , &c ); // read from nachos mem
     registro4++;
     fileName[i++] = c;
 }while (c != 0 );

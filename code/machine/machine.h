@@ -31,11 +31,8 @@
 const int PageSize = SectorSize; 	// set the page size equal to
 					// the disk sector size, for
 					// simplicity
-//#ifndef  VM
+
 const int NumPhysPages = 32; //se aumento el numero de paginas fisicas para que corriera el test pingPong
-//#else
-//sconst int NumPhysPages = 4;
-//#endif
 const int tamSWAP = 64;
 const int MemorySize =  NumPhysPages * PageSize;
 const int TLBSize = 32;			// if there is a TLB, make it small
@@ -184,7 +181,8 @@ class Machine {
 
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
-
+ void SafeReadMem(int addr, int size, int* value);
+void SafeWriteMem(int addr, int size, int value);
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction

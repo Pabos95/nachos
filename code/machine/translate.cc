@@ -36,15 +36,6 @@
 // Routines for converting Words and Short Words to and from the
 // simulated machine's format of little endian.  These end up
 // being NOPs when the host machine is also little endian (DEC and Intel).
-TranslationEntry::TranslationEntry(){
-virtualPage = 0;
-physicalPage = 0;
-valid = false;
-readOnly = false;
-use = false;
-dirty = false;
-dirty = false;
-}
 unsigned int
 WordToHost(unsigned int word) {
 #ifdef HOST_IS_BIG_ENDIAN
@@ -58,7 +49,10 @@ WordToHost(unsigned int word) {
 	 return word;
 #endif /* HOST_IS_BIG_ENDIAN */
 }
-
+void  Machine::SafeReadMem(int addr, int size, int* value){
+	while(!ReadMem(addr, size, value));
+	return;
+}
 unsigned short
 ShortToHost(unsigned short shortword) {
 #ifdef HOST_IS_BIG_ENDIAN
@@ -70,7 +64,10 @@ ShortToHost(unsigned short shortword) {
 	 return shortword;
 #endif /* HOST_IS_BIG_ENDIAN */
 }
-
+void Machine::SafeWriteMem(int addr, int size, int value){
+	while(!WriteMem(addr, size, value));
+	return;
+}
 unsigned int
 WordToMachine(unsigned int word) { return WordToHost(word); }
 
@@ -106,20 +103,28 @@ Machine::ReadMem(int addr, int size, int *value)
 	machine->RaiseException(exception, addr);
 	return false;
     }
+DEBUG('a', "Tamaño %d\n",size);
+DEBUG('a', "Direccion Fisica %d\n",physicalAddress);
     switch (size) {
       case 1:
+DEBUG('a', "Dato a leer %d\n",data);
 	data = machine->mainMemory[physicalAddress];
 	*value = data;
+DEBUG('a', "Valor %d\n",&value);
 	break;
 	
       case 2:
+DEBUG('a', "Dato a leer %d\n",data);
 	data = *(unsigned short *) &machine->mainMemory[physicalAddress];
 	*value = ShortToHost(data);
+DEBUG('a', "Valor %d\n",&value);
 	break;
 	
       case 4:
 	data = *(unsigned int *) &machine->mainMemory[physicalAddress];
+DEBUG('a', "Dato a leer %d\n",data);
 	*value = WordToHost(data);
+DEBUG('a', "Valor %d\n",&value);
 	break;
 
       default: ASSERT(false);

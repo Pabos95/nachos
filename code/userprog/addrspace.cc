@@ -179,7 +179,17 @@ AddrSpace::~AddrSpace()
    delete pageTable;
 }
 void AddrSpace::imprimirPageTableInvertida(){
-
+for(int i = 0; i <= NumPhysPages; i++){
+if(pageTableInvertida[i] != NULL){
+DEBUG('a', "Entrada %d de la pageTable Invertida\n",i);
+   DEBUG('a', " Valid %d \n", pageTableInvertida[i]->valid);
+ DEBUG('a', " Use %d \n", pageTableInvertida[i]->use);
+ DEBUG('a', " Dirty %d \n", pageTableInvertida[i]->dirty);
+ DEBUG('a', " Read Only %d \n", pageTableInvertida[i]->readOnly);
+ DEBUG('a', " Virtual Page %d \n", pageTableInvertida[i]->virtualPage);
+ DEBUG('a', " Physical Page %d \n", pageTableInvertida[i]->physicalPage);
+}
+}
 }
 //metodos de impresion
 //sirven para conocer el estado de las diferentes estructuras de datos usadas
@@ -200,9 +210,9 @@ DEBUG('a',"Estado de la TLB \n indice SecondChance= %d \n", indiceTLBSecondChanc
 	for (int i = 0; i < TLBSize; ++i )
 	{
                 DEBUG('a', "Entrada %d de la TLB \n",i);
-		printf(".Valid : %s, Use : %s, Dirty: %s, ReadOnly : %s, VirtualPage : %s, Physical Page %s \n",
+		printf(".Valid : %d, Use : %d, Dirty: %d, ReadOnly : %d, VirtualPage : %d, Physical Page %d \n",
 		machine->tlb[i].valid,
-		machine->tlb[i].use, machine->tlb[i].dirty, machine->tlb[i].readOnly, machine->tlb[i].virtualPage );
+		machine->tlb[i].use, machine->tlb[i].dirty, machine->tlb[i].readOnly, machine->tlb[i].physicalPage );
 	}
 }
 //----------------------------------------------------------------------
@@ -256,6 +266,7 @@ for(int i = 0; i < numPages; ++i){
 	machine->tlb = new TranslationEntry[ TLBSize ];
 	for (int i = 0; i < TLBSize; ++i)
 	{
+
 		machine->tlb[i].valid = false;
 }
 #endif 
@@ -315,6 +326,7 @@ void AddrSpace::RestoreState()
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 #else
+DEBUG('a', "Restaurando el estado de la maquina ");
 //se devuelven los indices de second chance
 indiceSWAPSecondChance = 0;
 indiceTLBSecondChance = 0;
@@ -323,11 +335,14 @@ machine->tlb = new TranslationEntry[TLBSize];
 for (int i = 0; i < TLBSize; ++i)
 	{
 		machine->tlb[i].valid = false;
+        machine->tlb[i].physicalPage = 0;
 }
 #endif
 }
 void AddrSpace::usarIndiceTLB( int indiceTLB, int vpn )
 {
+DEBUG('a', " \n VPN %d", vpn);
+DEBUG('a', " \n Entrada TLB %d", indiceTLB);
 	if ( indiceTLB < 0 || indiceTLB >= TLBSize  )
 	{
 		DEBUG('v',"\n Error indice de TLB invalido ");
@@ -338,12 +353,10 @@ void AddrSpace::usarIndiceTLB( int indiceTLB, int vpn )
 		DEBUG('v',"\n Error :vpn invalido %d\n",vpn);
 		ASSERT(false);
 	}
-	machine->tlb[indiceTLB].virtualPage =  pageTable[vpn].virtualPage;
-	machine->tlb[indiceTLB].physicalPage = pageTable[vpn].physicalPage;
-	machine->tlb[indiceTLB].valid = pageTable[vpn].valid;
-	machine->tlb[indiceTLB].use = pageTable[vpn].use;
-	machine->tlb[indiceTLB].dirty = pageTable[vpn].dirty;
-	machine->tlb[indiceTLB].readOnly = pageTable[vpn].readOnly;
+	machine->tlb[indiceTLB] =  pageTable[vpn];
+DEBUG('a', "\n Pagina fisica %d", pageTable[vpn].physicalPage);
+DEBUG('a', "\n Pagina fisica tlb %d", machine->tlb[vpn].physicalPage);
+imprimirTLB();
 }
 void AddrSpace::escribirEnSWAP(int paginaFisicaVictima){
 int paginaSwap = mapaSWAP->Find(); //busca una pagina libre en el swap
@@ -481,7 +494,7 @@ if (libre == -1){
 printf("Error al cargar la pagina a memoria %d\n", libre );
 ASSERT( false );
 }
-it  = it++ % 32;
+it  = it++ % TLBSize;
 //se marca la pagina fisica libre recien encontrada en la pageTable
 pageTable[vpn].physicalPage = libre;
 //se continua la lectura del programa cargando a la memoria la pagina siguiente
@@ -492,7 +505,7 @@ pageTable[vpn].valid = true;
 pageTableInvertida[libre] =  &(pageTable[vpn]);
 //se busca el siguiente espacio a usar en la TLB con second chance
 int siguiente = secondChanceTLB();
-usarIndiceTLB(siguiente, vpn);
+usarIndiceTLB(vpn,siguiente);
 }
 else{ //si la victima es limpia
 int pagFisicaAntigua = pageTableInvertida[indiceSWAPFIFO]->physicalPage;
@@ -597,7 +610,7 @@ else if(vpn >= initData && vpn < noInitData){ // Caso 2 la pagina pertenece al s
 						pageTable[ vpn ].valid = true;
 						//actualizar tabla de paginas invertidas
 						pageTableInvertida[ libre ] = &(pageTable [ vpn ]);
-						// actualizar la tlp
+						// actualizar la tlb
 						int tlbSPace = secondChanceTLB();
 						usarIndiceTLB( tlbSPace, vpn );
 				}
@@ -611,13 +624,15 @@ si la página a cargar es de código Y No es valida y es sucia
 */
 //if(pageTable[vpn].valid == false && (pageTable[vpn].dirty == true)){
 //}
-machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
-			machine->tlb[vpn].physicalPage = pageTable[it].physicalPage;
-			machine->tlb[it].valid = pageTable[vpn].valid;
-			machine->tlb[it].use = pageTable[vpn].use;
-			machine->tlb[it].dirty = pageTable[vpn].dirty;
-machine->tlb[it].readOnly = pageTable[vpn].readOnly;
+//machine->tlb[it].virtualPage = pageTable[vpn].virtualPage;
+			//machine->tlb[vpn].physicalPage = pageTable[it].physicalPage;
+			//machine->tlb[it].valid = pageTable[vpn].valid;
+			//machine->tlb[it].use = pageTable[vpn].use;
+			//machine->tlb[it].dirty = pageTable[vpn].dirty;
+//machine->tlb[it].readOnly = pageTable[vpn].readOnly;
 DEBUG('a',"Pagina fisica encontrada %dn", pageTable[vpn].physicalPage);
+//int tlbSPace = secondChanceTLB();
+imprimirPageTableInvertida();
 imprimirPageTable();
 imprimirTLB();
 }
