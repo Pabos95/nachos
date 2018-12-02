@@ -29,20 +29,22 @@ class AddrSpace {
     bool PaginaEnArchivo(int page);   //Se encarga de ver si una pagina de memoria se encuentra en el archivo
     void InitRegisters();		// Initialize user-level CPU registers,
 					// before jumping to user code
-    void Load(unsigned int vpn);
+    void Load( int vpn);
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
     void usarIndiceTLB(int ind, int vpn);
     int  BuscarTLBSecondChance(); //intenta buscar espacio en la TLB mediante el algoritmo de second chance
-    int secondChanceSwap(); //aplica el algoritmo de second chance al archivo de SWAP
+    int secondChanceSwap(); //aplica el algoritmo de second chance al archivo de swap
     int secondChanceTLB(); //aplica el algoritmo de second chance a la TLB
-    void escribirEnSWAP(int paginaFisicaVictima); //envia una pagina al archivo SWAP
-    void buscarVictimaSwap(int indiceSWAP);
+    void escribirEnSwap(int paginaFisicaVictima); //envia una pagina al archivo swap
+    void buscarVictimaSwap(int indiceswap);
     void salvarVictimaTLB( int indiceTLB, bool uso );
+void leerSwap( int physicalPage , int swapPage );
+void limpiarPagFisica( int pag);
 void imprimirPageTable();
 void imprimirPageTableInvertida();
 void imprimirTLB();
- void actualizarVictimaSwap(int indiceSWAP);
+ void actualizarVictimaswap(int indiceswap);
     char* fn; //Nombre del archivo ejecutable
    static const int codigo = 0;
    static const int code = 0;
@@ -56,7 +58,7 @@ void imprimirTLB();
     unsigned int numPages;		// Number of pages in the virtual 
    				// address space
     NoffHeader noff;
-    OpenFile* Swap = NULL;
+    OpenFile* swap = NULL;
 };
 
 #endif // ADDRSPACE_H
