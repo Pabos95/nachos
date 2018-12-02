@@ -278,7 +278,7 @@ void AddrSpace::RestoreState()
 
 void AddrSpace::limpiarPagFisica( int pag)
 {
-	if ( pag < 0 || NumPhysPages >= pag )
+	if ( pag < 0 || pag >= NumPhysPages )
 	{
 			printf("Error : Numero de pagina menor a 0 o mayor al numero de paginas fisicas : %d\n", pag);
 			ASSERT( false );
@@ -478,7 +478,7 @@ int  AddrSpace::secondChanceSwap()
 
 	if ( freeSpace < 0 || freeSpace >= NumPhysPages )
 	{
-		DEBUG('v',"\nsecondChanceTLBceSWAP: Invalid pageTableInvertida information\n");
+		DEBUG('v',"\nsecondChanceTLBceSWAP: Invalid pageTable Index\n");
 		imprimirPageTableInvertida();
 		ASSERT( false );
 	}
