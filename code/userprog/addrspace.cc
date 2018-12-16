@@ -152,6 +152,7 @@ initData = divRoundUp(noffH.code.size, PageSize);
 	noInitData = initData + divRoundUp(noffH.initData.size, PageSize);
 	stack = numPages - divRoundUp(UserStackSize,PageSize);
 DEBUG('a', "Creado el page table");
+imprimirPageTable();
 #ifndef VM
 	bzero(machine->mainMemory, size);
 	int direccionMemoriaCodigo = noffH.code.inFileAddr;
@@ -242,7 +243,6 @@ void AddrSpace::SaveState()
 		machine->tlb = NULL;
 	}
 	*/
-	machine->tlb = new TranslationEntry[ TLBSize ];
 	for (int i = 0; i < TLBSize; ++i)
 	{
 		machine->tlb[i].valid = false;
@@ -268,7 +268,6 @@ void AddrSpace::RestoreState()
 //se reinician los indices
 	indiceTLBFIFO = 0;
 	indiceTLBSecondChance = 0;
-	machine->tlb = new TranslationEntry[ TLBSize ];
 	for (int i = 0; i < TLBSize; ++i)
 	{
 		machine->tlb[i].valid = false;
@@ -503,13 +502,25 @@ void AddrSpace::buscarVictimaSwap(int swapi)
 //VM
 void AddrSpace::Load(int vpn)
 {
+imprimirPageTable();
 	int libre;
 	DEBUG('v', "Numero de paginas: %d, hilo actual: %s\n", numPages, currentThread->getName());
 	DEBUG('v', "\tCodigo va de [%d, %d[ \n", 0, initData);
 	DEBUG('v',"\tDatos incializados va de [%d, %d[ \n", initData, noInitData);
 	DEBUG('v', "\tDatos no incializados va de [%d, %d[ \n", noInitData , stack);
 	DEBUG('v',"\tPila va de [%d, %d[ \n", stack, numPages );
-
+if(vpn >= 0 && vpn < initData){ //si la pagina pertenece al segmento de código
+DEBUG('v',"\t Pagina de codigo \n");
+if(pageTable[vpn].valid == false){ //si la pagina no es valida se debe buscar un frame en memoria
+DEBUG('v',"\t Pagina no valida \n");
+memoryMan->AllocateFrame(pageTable[vpn], "code", fn);
+}
+else{ //si ya es valida solamente se debe actualizar el TLB
+DEBUG('v',"\t Pagina valida \n");
+}
+}
+}
+/*
 	//Si la pagina no es valida ni esta sucia.
 	if ( !pageTable[vpn].valid && !pageTable[vpn].dirty ){
 		//Entonces dependiendo del segmento de la pagina, debo tomar la decisión de ¿donde cargar esta pagina?
@@ -864,4 +875,4 @@ DEBUG('v',"Pagina fisica encontrada %d /n", pageTable[vpn].physicalPage);
 //imprimirTLB();
 //imprimirPageTable();
 //imprimirPageTableInvertida();
-}
+}*/

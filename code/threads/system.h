@@ -7,6 +7,8 @@
 
 #ifndef SYSTEM_H
 #define SYSTEM_H
+#include "swapfile.h"
+#include "memorymanager.h"
 #include "tablasemaforos.h"
 #include "copyright.h"
 #include "utility.h"
@@ -29,8 +31,10 @@ extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 #ifdef USER_PROGRAM
 extern BitMap* mapaGlobal;		//Mapa de bits global para saber cuales paginas están ocupadas en la memoria fisica
+extern MemoryManager* memoryMan;
 extern BitMap* mapaSWAP; //bitmap para saber que posiciones del swap estan ocupadas
 extern Machine* machine;	// user program memory and registers
+extern SwapFile* swapF;
 extern int indiceSWAPFIFO;
 extern int indiceTLBFIFO; 
 extern int indiceTLBSecondChance;  //variable global para guardar el indice de la TLB en la que se encuentra el second chance

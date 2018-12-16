@@ -12,7 +12,7 @@
 
 #ifndef ADDRSPACE_H
 #define ADDRSPACE_H
-
+#include "swapfile.h"
 #include "copyright.h"
 #include "filesys.h"
 #include "noff.h"

@@ -165,7 +165,6 @@ printf("Entra a open");
     do{
         machine->SafeReadMem(dir +i,1 ,&caracterActual); //lee un caracter de la memoria
         name[i++] = caracterActual;
-        i++;
     }while(caracterActual != 0);
 	// Read the name from the user memory, see 5 below
 	// Use NachosOpenFilesTable class to create a relationship
@@ -522,6 +521,7 @@ void ExceptionHandler(ExceptionType which)
                 break;
              case SC_Read:
               //system Call #6
+               Nachos_Read();
                   break;
              case SC_Write:
                 Nachos_Write();
@@ -563,7 +563,7 @@ void ExceptionHandler(ExceptionType which)
                     printf("Ocurre en la direccion: %d \n", dirLogica);
                     printf(" En la pagina : %d \n", vpn);
                   currentThread->space->Load(vpn);
-printf("Sale de load");
+                   printf("Sale de load");
                     break;
 	       case  ReadOnlyException:     // Write attempted to page marked 
 		     printf("Excepcion de read only");			    // "read-only"

@@ -37,6 +37,8 @@ int indiceTLBSecondChance = 0;  //variable global para guardar el indice de la T
 int indiceSWAPSecondChance = 0;
 int indiceSWAPFIFO = 0;
 int indiceTLBFIFO = 0;
+SwapFile* swapF;
+MemoryManager* memoryMan; //encargado de resolver los page faults de nachos 
 BitMap* mapaGlobal; //bitMap global para saber cuales paginas están ocupadas
 BitMap* mapaSWAP;
 Machine *machine;	// user program memory and registers
@@ -94,8 +96,10 @@ Initialize(int argc, char **argv)
     int argCount;
     const char* debugArgs = "";
     bool randomYield = false;
+    memoryMan = new MemoryManager(NumPhysPages, true);
     mapaGlobal = new BitMap(NumPhysPages);
     mapaSWAP = new BitMap(tamSWAP);
+    swapF = new SwapFile(tamSWAP);
     for(int i = 0; i < NumPhysPages; i++){
 pageTableInvertida[i] = NULL;
 }
