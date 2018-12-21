@@ -25,10 +25,11 @@ public:
 
     int AllocateFrame( TranslationEntry& pageTableEntry, string segment, char* file);
     int GetLRUFrame();            // One allocation algorithm, return the LRU frame in the lastAccessTime array
-    int GetSecondChanceFrame();    // Another allocation algorithm, return the Second Chance first available frame
+    int GetSecondChanceFrame(TranslationEntry& pageTableEntry);    // Another allocation algorithm, return the Second Chance first available frame
     void FreeFrame( int frameNumber );    // Free a frame from this manager and reset allocation activity
     bool FrameIsAllocated( int frameNumber );
     void UpdateTLB(int tlbIndex,TranslationEntry& pageTableEntry);
+    void UpdatePageTable(TranslationEntry& pageTableEntry, int tlbIndex);
     int GetAvailableMemory();
     void useSecondChanceIndex();
     void useLRUIndex();

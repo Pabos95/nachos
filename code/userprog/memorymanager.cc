@@ -1,5 +1,10 @@
 #include "memorymanager.h"
 #include "system.h"
+void UpdatePageTable(TranslationEntry& pageTableEntry, int tlbIndex){
+if(tlbIndex < 0 || tlbIndex >= TLBSize){
+
+}
+}
 MemoryManager::MemoryManager(int numberOfFrames, bool seconChance){
 memoryMap = new BitMap(numberOfFrames);
 secondChanceIndex = 0;
@@ -9,12 +14,25 @@ for(int i = 0; i <= NumPhysPages - 1 ;i++){
 InvertedPageTable[i] = NULL;
 }
 }
-int MemoryManager::GetSecondChanceFrame(){;
+int MemoryManager::GetSecondChanceFrame(TranslationEntry& pageTableEntry){;
 //primera pasada
 for(int i = 0; i <= TLBSize - 1; i++){
+int freeSpace = -1;
 if(machine->tlb[i].valid == false){
 return i;
 }
+}
+bool find = false;
+while(!find){
+//si tiene el bit de uso encendido se desactiva
+if(machine->tlb[secondChanceIndex].use == true){
+machin->tlb[secondChanceIndex].use = false;
+	}
+//si no se procede a
+else{
+find = true;
+freeSpace = secondChanceIndex;
+   }
 }
 }
 int MemoryManager::GetLRUFrame(){
@@ -64,12 +82,22 @@ InvertedPageTable[freeFrame] = &pageTableEntry;
 DEBUG('v',"\t Page table invertida actualizada \n");
 int tlbSpace;
 if(scnChance == true){
-tlbSpace = GetSecondChanceFrame();
+	tlbSpace = GetSecondChanceFrame();
 }
 else{
-tlbSpace = GetLRUFrame();
+	tlbSpace = GetLRUFrame();
 }
 UpdateTLB( tlbSpace,pageTableEntry);
+}
+else if(segment == "stack"){
+freeFrame = memoryMap->Find();
+//si se encontro un frame libre en memoria
+if(freeFrame != -1){
+	++stats->numPageFaults;
+        pageTableEntry.physicalPage = freeFrame;
+        pageTableEntry.valid = true;
+
+}
 }
 }
 return freeFrame;

@@ -519,6 +519,9 @@ else{ //si ya es valida solamente se debe actualizar el TLB
 DEBUG('v',"\t Pagina valida \n");
 }
 }
+else if(vpn >= stack && vpn < numPages){
+memoryMan->AllocateFrame(pageTable[vpn], "stack", fn);
+}
 }
 /*
 	//Si la pagina no es valida ni esta sucia.
